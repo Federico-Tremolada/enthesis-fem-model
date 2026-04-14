@@ -70,3 +70,17 @@ Compared to the sharp model, the linear graded interface is expected to:
 - reduce stress concentration near the interface
 - redistribute stress more smoothly
 - provide a more physiologically meaningful load transfer
+
+## Visuals
+
+### Geometry
+![Geometry](geometry.png)
+
+### Mesh
+![Mesh](mesh.png)
+
+### Boundary Conditions
+![Boundary Conditions](boundary_conditions.png)
+
+### Stress Distribution (S11)
+![S11](stress_S11.png)
