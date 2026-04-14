@@ -1,3 +1,46 @@
+"""
+============================================================
+POST-PROCESSING — S11 COMPARISON ACROSS ALL MODELS
+============================================================
+
+Description:
+This script performs comparative analysis of S11 stress
+distributions extracted from FEM simulations of the
+tendon–bone interface.
+
+It loads CSV files corresponding to different material
+models and generates unified plots and quantitative metrics.
+
+Specifically, it:
+- reads S11(x) data from multiple models
+- aligns data along a common spatial axis
+- generates comparative plots
+- evaluates stress distribution differences
+
+Engineering objective:
+Assess how different material transition laws influence
+stress transfer and concentration along the interface.
+
+Input:
+- CSV files containing:
+    x   → coordinate along the interface [mm]
+    S11 → longitudinal stress [MPa]
+
+Output:
+- comparative S11 plots
+- processed data for further analysis
+- figures used in the results section
+
+Notes:
+- All models must share the same geometry and coordinate system
+- Data is assumed to be extracted along the same line
+
+Author: FEDERICO TREMOLADA
+Project: Entesis FEM Study
+Version: v1.0
+============================================================
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
