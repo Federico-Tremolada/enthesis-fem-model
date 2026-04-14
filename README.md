@@ -111,17 +111,38 @@ The project follows a structured simulation pipeline:
 
 ---
 
-## Model Selection
+## Conclusions — Model Comparison and Selection
 
-Based on the comparative analysis, the **power-law model with exponent n = 2** is selected for further development.
+The comparative analysis of the five interface models highlights the critical role of material transition laws in controlling stress distribution across the tendon–bone interface.
 
-This model shows:
+The **sharp interface** exhibits a pronounced stress concentration at the interface, confirming the detrimental effect of abrupt stiffness discontinuities.
 
-* reduced stress concentration
-* smoother stress gradient across the interface
-* improved mechanical compatibility between tendon and bone
+The introduction of graded material transitions significantly improves the mechanical response:
 
-This marks the transition from **model comparison** to **model refinement** in the next phase of the project.
+* The **linear gradient** reduces peak stress but still presents a relatively abrupt variation in the stress field.
+* The **exponential model** provides a smoother redistribution, indicating improved load transfer continuity.
+* The **power-law model with n = 0.5** modifies the stress profile but does not significantly mitigate peak stress concentration, as the stiffness increases too rapidly near the tendon region.
+
+In contrast, the **power-law model with n = 2** demonstrates the most favorable behavior:
+
+* it reduces stress concentration more effectively than the other graded models
+* it produces a smoother and more continuous stress distribution across the interface
+* it delays the stiffness increase, improving mechanical compatibility between tendon and bone
+
+This behavior suggests that a **convex material gradient**, with delayed stiffening, is more effective in mitigating stress concentrations than both linear and concave profiles.
+
+### Model Selection
+
+Based on these results, the **power-law model with exponent n = 2** is selected as the reference configuration for the subsequent phase of the project.
+
+This selection is driven by its superior ability to:
+
+* minimize stress peaks
+* ensure gradual load transfer
+* reproduce a mechanically consistent transition between soft and stiff tissues
+
+The following phase of the project focuses on further improving this model by introducing additional physical realism, such as variable Poisson’s ratio and energy-based validation.
+
 
 ---
 
