@@ -1,7 +1,52 @@
+%% ============================================================
+% FEM POST-PROCESSING — S11 ANALYSIS ALONG THE INTERFACE
+% ============================================================
+%
+% Description:
+% This script performs post-processing of FEM results obtained
+% from Abaqus simulations of different enthesis models.
+%
+% Specifically, it:
+% - Reads CSV files containing S11(x) stress profiles
+% - Compares multiple models (sharp, graded, power-law)
+% - Interpolates data onto a common spatial grid
+% - Generates comparative plots
+% - Computes key quantitative metrics
+%
+% Engineering objective:
+% Evaluate the effect of material grading on the stress
+% distribution along the tendon-bone interface.
+%
+% Input:
+% - CSV files containing:
+%     x   → coordinate along the interface [mm]
+%     S11 → longitudinal stress [MPa]
+%
+% Output:
+% - Comparative S11(x) plot
+% - Key metrics:
+%     • maximum/minimum S11
+%     • peak locations
+%     • S11 value at the interface
+% - Automatically saved files:
+%     • summary_metrics.csv
+%     • S11_comparison.png
+%     • metrics_barplot.png
+%
+% Notes:
+% - The script is robust to:
+%     • column name variations (case-insensitive)
+%     • unordered data
+%     • presence of NaN values
+%
+% Author: FEDERICO TREMOLADA
+% Project: Entesis FEM Study
+% ============================================================
+
 clear; close all; clc;
 
 %% =========================
-% 1. SELEZIONE CARTELLA CSV
+% 1. CSV FOLDER SELECTION
 %% =========================
 
 folder = uigetdir(pwd, 'Seleziona la cartella contenente i file CSV');
@@ -33,7 +78,7 @@ model_names = {
 n_models = numel(files);
 
 %% =========================
-% 3. LETTURA DATI ROBUSTA
+% 3. DATA READING
 %% =========================
 
 data = cell(n_models,1);
@@ -98,7 +143,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 4. INTERPOLAZIONE SU GRIGLIA COMUNE
+% 4. INTERPOLATION ON COMMON GRID
 %% =========================
 
 x_min = max(cellfun(@(d) min(d.x), data));
@@ -116,7 +161,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 5. GRAFICO PRINCIPALE
+% 5. MAIN PLOT
 %% =========================
 
 fig1 = figure('Name','Confronto S11 vs x','Color','w');
@@ -145,7 +190,7 @@ legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
 %% =========================
-% 6. METRICHE
+% 6. METRICS
 %% =========================
 
 metrics = struct();
@@ -171,7 +216,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 7. STAMPA RISULTATI
+% 7. RESULTS PRINTING 
 %% =========================
 
 fprintf('\n==============================\n');
@@ -188,7 +233,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 8. TABELLA RIASSUNTIVA
+% 8. SUM-UP CHART
 %% =========================
 
 ResultsTable = table( ...
@@ -205,7 +250,7 @@ disp('Tabella riassuntiva:');
 disp(ResultsTable);
 
 %% =========================
-% 9. BAR PLOT METRICHE
+% 9. BAR PLOT METRICS
 %% =========================
 
 fig2 = figure('Name','Metriche sintetiche','Color','w');
@@ -229,7 +274,7 @@ grid on;
 box on;
 
 %% =========================
-% 10. SALVATAGGIO OUTPUT
+% 10. OUTPUT SAVING
 %% =========================
 
 writetable(ResultsTable, fullfile(folder, 'summary_metrics.csv'));
