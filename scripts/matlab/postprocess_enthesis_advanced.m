@@ -1,7 +1,65 @@
+%% ===========================================================
+% ADVANCED POST-PROCESSING — ENTHESIS MECHANICAL ANALYSIS
+% ============================================================
+%
+% Description:
+% This script extends the analysis of the S11(x) stress field
+% by introducing advanced mechanical metrics for evaluating
+% different enthesis models.
+%
+% In addition to direct comparison, it analyzes:
+% - First derivative → stress gradient
+% - Second derivative → stress curvature (concentration)
+% - Area difference with respect to the sharp model
+% - Smoothness of the stress field
+%
+% Engineering objective:
+% Quantify the ability of graded models to:
+% - reduce stress peaks
+% - distribute stresses more smoothly
+% - improve mechanical transition at the interface
+%
+% Input:
+% - CSV files containing:
+%     x   → coordinate along the interface [mm]
+%     S11 → longitudinal stress [MPa]
+%
+% Output:
+% - Plots:
+%     • comparative S11(x)
+%     • stress gradient (dS/dx)
+%     • stress curvature (d²S/dx²)
+%     • bar plots of key metrics
+%
+% - Tables:
+%     • summary_metrics_advanced.csv
+%     • model_ranking.csv
+%
+% Key metrics:
+% - S11 at the interface
+% - max |dS/dx| → gradient severity
+% - mean |d²S/dx²| → local stress concentration
+% - area vs sharp → global difference
+%
+% Ranking:
+% Models are ranked based on:
+% - interface performance
+% - smoothness (gradient and curvature)
+%
+% Physical meaning:
+% A good enthesis model should:
+% - minimize mechanical discontinuities
+% - reduce stress concentrations
+% - ensure gradual load transfer
+%
+% Author: FEDERICO TREMOLADA
+% Project: Entesis FEM Study
+% ============================================================
+
 clear; close all; clc;
 
 %% =========================
-% 1. SELEZIONE CARTELLA CSV
+% 1. CSV FOLDER SELECTION
 %% =========================
 
 folder = uigetdir(pwd, 'Seleziona la cartella contenente i file CSV');
@@ -33,7 +91,7 @@ model_names = {
 n_models = numel(files);
 
 %% =========================
-% 3. LETTURA DATI ROBUSTA
+% 3. DATA READING
 %% =========================
 
 data = cell(n_models,1);
@@ -90,7 +148,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 4. INTERPOLAZIONE SU GRIGLIA COMUNE
+% 4. INTERPOLATION ON COMMON GRID
 %% =========================
 
 x_min = max(cellfun(@(d) min(d.x), data));
@@ -111,7 +169,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 5. GRAFICO PRINCIPALE
+% 5. MAIN PLOT
 %% =========================
 
 fig1 = figure('Name','Confronto S11 vs x','Color','w');
@@ -137,7 +195,7 @@ legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
 %% =========================
-% 6. CALCOLO METRICHE AVANZATE
+% 6. ADVANCED METRICS
 %% =========================
 
 metrics = struct();
@@ -193,7 +251,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 7. TABELLA COMPLETA
+% 7. COMPLETE CHART
 %% =========================
 
 ResultsTable = table( ...
@@ -254,7 +312,7 @@ fprintf('\nModello con S11 all''interfaccia meno severo: %s\n', metrics(idx_best
 fprintf('  S11_interface = %.4f MPa\n', metrics(idx_best_interface).S_interface);
 
 %% =========================
-% 9. GRAFICO DERIVATA PRIMA
+% 9. FIRST DERIVATIVE PLOT
 %% =========================
 
 fig2 = figure('Name','Gradiente di stress','Color','w');
@@ -273,7 +331,7 @@ legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
 %% =========================
-% 10. GRAFICO CURVATURA
+% 10. CURVATURE PLOT
 %% =========================
 
 fig3 = figure('Name','Curvatura di stress','Color','w');
@@ -293,7 +351,7 @@ legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
 %% =========================
-% 11. BARPLOT METRICHE CHIAVE
+% 11. BARPLOT KEY METRICS 
 %% =========================
 
 fig4 = figure('Name','Metriche chiave','Color','w');
@@ -327,7 +385,7 @@ set(gca, 'XTick', 1:n_models, 'XTickLabel', model_names);
 xtickangle(30); grid on; box on;
 
 %% =========================
-% 12. RANKING FINALE
+% 12. FINAL RANKING 
 %% =========================
 % Ranking basato su:
 % - S11_interface (meno severo = meglio)
@@ -371,7 +429,7 @@ disp('==============================');
 disp(RankingTable);
 
 %% =========================
-% 13. SALVATAGGIO OUTPUT
+% 13. OUTPUT SAVING
 %% =========================
 
 writetable(ResultsTable, fullfile(folder, 'summary_metrics_advanced.csv'));
