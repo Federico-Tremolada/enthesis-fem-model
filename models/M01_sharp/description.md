@@ -63,3 +63,6 @@ Because of the sharp material discontinuity, the model is expected to show stron
 
 ### Boundary Conditions
 ![Boundary Conditions](boundary_conditions.png)
+
+### Stress Distribution (S11)
+![S11](stress_S11.png)
