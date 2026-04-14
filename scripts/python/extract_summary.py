@@ -1,30 +1,46 @@
-# -*- coding: utf-8 -*-
 """
-extract_summary.py
+============================================================
+DATA EXTRACTION — GLOBAL STRESS METRICS
+============================================================
 
-Post-processing Abaqus ODB files to extract summary stress metrics
-from the last frame of the loading step.
+Description:
+This script extracts global stress metrics from Abaqus
+simulation results.
 
-Extracted quantities:
-- max von Mises stress
-- max S11
-- min S11
-- number of stress values read
+It processes .odb files and computes key scalar quantities
+used to characterize the mechanical response of each model.
 
-Designed to run with Abaqus Python:
-    abaqus python extract_summary.py
+Specifically, it:
+- opens Abaqus .odb files
+- extracts:
+    • maximum von Mises stress
+    • maximum and minimum S11
+- optionally identifies locations of peak values
+- exports results to CSV format
 
-Assumed folder structure:
-root_folder/
-│
-├── M01_sharp_v1/
-│   └── M01_sharp_v1.odb
-├── M02_linear_v1/
-│   └── M02_linear_v1.odb
-└── ...
+Engineering objective:
+Provide a quantitative summary of stress levels for each
+model, enabling direct comparison of global mechanical
+behavior.
+
+Input:
+- Abaqus .odb files
 
 Output:
-- summary_all_models.csv
+- CSV file containing:
+    • model name
+    • max von Mises stress
+    • max/min S11
+    • optional coordinates of extrema
+
+Notes:
+- Used for high-level comparison between models
+- Complements line-based stress analysis
+
+Author: FEDERICO TREMOLADA
+Project: Entesis FEM Study
+Version: v1.0
+============================================================
 """
 
 import os
