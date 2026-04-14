@@ -52,3 +52,14 @@ This model is the baseline configuration used to evaluate stress concentration e
 ## Expected Behavior
 
 Because of the sharp material discontinuity, the model is expected to show strong stress concentration near the tendon–bone interface.
+
+## Visuals
+
+### Geometry
+![Geometry](geometry.png)
+
+### Mesh
+![Mesh](mesh.png)
+
+### Boundary Conditions
+![Boundary Conditions](boundary_conditions.png)
