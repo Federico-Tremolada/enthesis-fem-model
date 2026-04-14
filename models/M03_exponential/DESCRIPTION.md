@@ -1,15 +1,86 @@
-# Exponential Gradient Model
-
-This model uses an exponential variation of material properties across the interface.
+# M03 – Exponential Graded Interface
 
 ## Description
 
-The material stiffness varies according to an exponential law along the interface direction.
+This model introduces an exponential variation of Young’s modulus across the tendon–bone interface, providing a smoother transition compared to linear grading.
+
+## Geometry
+
+- 2D planar rectangular model
+- Total length: 30 mm
+- Height: 6 mm
+- Tendon region: 12 mm
+- Enthesis region: 6 mm
+- Bone region: 12 mm
+
+## Interface Discretization
+
+The enthesis region is discretized into 8 layers:
+
+- 2 outer layers: 1.2 mm each
+- 6 inner layers: 0.6 mm each
+
+This discretization is used to approximate a continuous exponential gradient.
+
+## Material Properties
+
+### Tendon
+- Young’s modulus: 200 MPa
+- Poisson’s ratio: 0.45
+
+### Bone
+- Young’s modulus: 20000 MPa
+- Poisson’s ratio: 0.30
+
+### Enthesis
+- Young’s modulus varies exponentially from tendon to bone
+- Poisson’s ratio initially assumed uniform
+
+## Interface Modeling
+
+The elastic modulus assigned to each enthesis layer follows an exponential law, allowing a nonlinear transition with a smoother stiffness evolution.
+
+## Analysis Setup
+
+- Software: Abaqus/CAE
+- Model type: 2D planar
+- Formulation: Plane Stress
+- Step: Static, General
+- NLGEOM: OFF
+
+## Boundary Conditions
+
+- Right edge (bone side): U1 = 0, U2 = 0
+- Left edge (tendon side): imposed displacement U1 = 0.3 mm
+- U2 free on the loaded side
+
+## Mesh
+
+- Element type: CPS4R
+- Refined mesh in the enthesis region
 
 ## Purpose
 
-To provide a smoother transition compared to linear interpolation and reduce stress concentration.
+This model is used to evaluate whether an exponential graded transition improves stress redistribution compared to linear and sharp interfaces.
 
-## Notes
+## Expected Behavior
 
-This model is compared against linear and power-law gradients to evaluate stress redistribution efficiency.
+Compared to the linear model, the exponential graded interface is expected to:
+
+- further smooth stress gradients
+- reduce peak stress concentration
+- provide a more gradual load transfer
+
+## Visuals
+
+### Geometry
+![Geometry](geometry.png)
+
+### Mesh
+![Mesh](mesh.png)
+
+### Boundary Conditions
+![Boundary Conditions](boundary_conditions.png)
+
+### Stress Distribution (S11)
+![S11](stress_S11.png)
