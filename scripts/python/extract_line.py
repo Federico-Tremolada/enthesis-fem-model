@@ -1,4 +1,43 @@
-# -*- coding: utf-8 -*-
+"""
+============================================================
+DATA EXTRACTION — S11 PROFILE ALONG INTERFACE
+============================================================
+
+Description:
+This script extracts stress data along a predefined line
+from Abaqus output databases (.odb).
+
+It focuses on retrieving the S11 stress component along
+the tendon–bone interface for subsequent analysis.
+
+Specifically, it:
+- opens Abaqus .odb files
+- identifies nodes/elements along a defined path
+- extracts S11 stress values
+- exports results to CSV format
+
+Engineering objective:
+Obtain a consistent stress profile S11(x) to enable
+quantitative comparison between different material models.
+
+Input:
+- Abaqus .odb file
+- predefined path or node set
+
+Output:
+- CSV file containing:
+    x   → coordinate along the interface [mm]
+    S11 → longitudinal stress [MPa]
+
+Notes:
+- The extraction path must be consistent across all models
+- Output CSV files are used as input for analysis scripts
+
+Author: FEDERICO TREMOLADA
+Project: Entesis FEM Study
+Version: v1.0
+============================================================
+"""
 
 import os
 import csv
