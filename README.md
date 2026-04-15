@@ -90,18 +90,6 @@ Outputs:
 
 ---
 
-## Results — Model Comparison
-
-### Stress Distribution Along the Interface
-
-![S11 Comparison](results/key_results/S11_comparison_advanced.png)
-
-### Zoom Near the Interface
-
-![S11 Zoom](results/key_results/S11_zoom_all_models.png)
-
----
-
 ## Key Findings
 
 - The **sharp interface** exhibits the highest stress concentration  
