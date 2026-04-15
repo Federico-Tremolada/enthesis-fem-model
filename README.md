@@ -13,6 +13,14 @@ This project investigates how different material transition laws influence both 
 
 The main objective is to evaluate whether functionally graded materials (FGMs) can reduce stress concentrations compared to sharp interfaces, and to identify the most mechanically effective transition law.
 
+## Why This Matters
+
+Understanding stress transfer in graded interfaces is critical for:
+
+- improving tendon-to-bone surgical repairs  
+- designing biomimetic materials  
+- reducing failure at material interfaces in engineering systems  
+
 ## Key Takeaways
 
 - Functionally graded materials reduce stress concentrations
