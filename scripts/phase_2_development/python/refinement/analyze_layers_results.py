@@ -1,36 +1,39 @@
-# -*- coding: utf-8 -*-
 """
-Analisi rapida dei risultati dei modelli:
+Script: analyze_layer_results.py
+Author: FEDERICO TREMOLADA
+
+Purpose:
+Perform a rapid comparison of layer-refinement results by reading summary
+metrics and S11 centerline profiles, then generating quantitative and
+graphical outputs.
+
+Models:
 - L08
 - L12
 - L16
+- Any additional model following the same naming convention
 
-INPUT ATTESI
-ROOT_DIR/
-└── python_results/
-    ├── summary_layers.csv
-    └── line_profiles/
-        ├── ...L08..._line.csv
-        ├── ...L12..._line.csv
-        └── ...L16..._line.csv
+Input:
+- python_results/summary_layers.csv
+- python_results/line_profiles/*_line.csv
 
-OUTPUT
-ROOT_DIR/
-└── python_results/
-    ├── comparison_metrics.csv
-    ├── convergence_report.txt
-    └── S11_layers_comparison.png
+Operations:
+- Load summary_layers.csv
+- Load S11(x) line profiles
+- Generate a comparative S11 plot
+- Compute percentage differences between L08, L12, and L16
+- Write a preliminary automatic convergence report
 
-COSA FA
-1) legge summary_layers.csv
-2) legge i profili S11(x)
-3) genera grafico comparativo
-4) calcola differenze percentuali tra L08, L12, L16
-5) scrive una conclusione automatica preliminare
+Output:
+- python_results/comparison_metrics.csv
+- python_results/convergence_report.txt
+- python_results/S11_layers_comparison.png
 
-NOTE
-- Cambia ROOT_DIR con il tuo percorso
-- Questo script va lanciato con Python normale, non Abaqus Python
+Notes:
+This script is intended for rapid post-processing of Phase A layer-refinement
+results.
+Update the root_dir variable according to your own project structure.
+Run this script with standard Python, not Abaqus Python.
 """
 
 import os
@@ -38,29 +41,31 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ============================================================
-# CONFIGURAZIONE UTENTE
-# ============================================================
+# =========================================
+# USER SETTINGS
+# =========================================
 
-ROOT_DIR = r"C:\Users\fedet\OneDrive\Desktop\P01_TendonBone_Interface\II_Power_Law_Development\01_Abaqus_sims\01_FaseA_Refinement"
+# Root folder containing the python_results directory.
+# Update this path according to your local project structure.
+root_dir = os.path.join(os.getcwd(), "project_root")
 
-RESULTS_DIR = os.path.join(ROOT_DIR, "python_results")
-LINE_DIR = os.path.join(RESULTS_DIR, "line_profiles")
+results_dir = os.path.join(root_dir, "python_results")
+line_dir = os.path.join(results_dir, "line_profiles")
 
-SUMMARY_CSV = os.path.join(RESULTS_DIR, "summary_layers.csv")
-METRICS_CSV = os.path.join(RESULTS_DIR, "comparison_metrics.csv")
-REPORT_TXT = os.path.join(RESULTS_DIR, "convergence_report.txt")
-PLOT_PNG = os.path.join(RESULTS_DIR, "S11_layers_comparison.png")
+summary_csv = os.path.join(results_dir, "summary_layers.csv")
+metrics_csv = os.path.join(results_dir, "comparison_metrics.csv")
+report_txt = os.path.join(results_dir, "convergence_report.txt")
+plot_png = os.path.join(results_dir, "S11_layers_comparison.png")
 
-TARGET_TAGS = ["L08", "L12", "L16"]
+target_tags = ["L08", "L12", "L16"]
 
-# Soglia pratica per dire che due risultati sono "quasi uguali"
-# in termini percentuali
-CONVERGENCE_THRESHOLD_PERCENT = 3.0
+# Practical threshold to consider two results "almost equal"
+# in percentage terms
+convergence_threshold_percent = 3.0
 
-# ============================================================
-# FUNZIONI UTILI
-# ============================================================
+# =========================================
+# UTILITY FUNCTIONS
+# =========================================
 
 def percent_change(old, new):
     if old == 0:
@@ -74,40 +79,40 @@ def abs_percent_change(a, b):
 
 def detect_tag(name):
     name_low = name.lower()
-    for tag in TARGET_TAGS:
+    for tag in target_tags:
         if tag.lower() in name_low:
             return tag
     return None
 
 def load_summary(summary_csv):
     if not os.path.exists(summary_csv):
-        raise FileNotFoundError("summary_layers.csv non trovato: {}".format(summary_csv))
+        raise FileNotFoundError("summary_layers.csv not found: {}".format(summary_csv))
 
     df = pd.read_csv(summary_csv)
 
     if df.empty:
-        raise RuntimeError("summary_layers.csv è vuoto.")
+        raise RuntimeError("summary_layers.csv is empty.")
 
     df["tag"] = df["model_name"].apply(detect_tag)
     df = df[df["tag"].notna()].copy()
 
     if df.empty:
-        raise RuntimeError("Nessun modello L08/L12/L16 trovato nel summary.")
+        raise RuntimeError("No L08/L12/L16 models found in the summary.")
 
-    # Teniamo un solo record per tag
+    # Keep only one record per tag
     df = df.drop_duplicates(subset=["tag"], keep="first")
 
     return df
 
 def load_line_profiles(line_dir):
     if not os.path.isdir(line_dir):
-        raise FileNotFoundError("Cartella line_profiles non trovata: {}".format(line_dir))
+        raise FileNotFoundError("line_profiles folder not found: {}".format(line_dir))
 
     profiles = {}
 
     csv_files = glob.glob(os.path.join(line_dir, "*.csv"))
     if not csv_files:
-        raise RuntimeError("Nessun line csv trovato in {}".format(line_dir))
+        raise RuntimeError("No line CSV files found in {}".format(line_dir))
 
     for csv_path in csv_files:
         fname = os.path.basename(csv_path)
@@ -129,9 +134,9 @@ def load_line_profiles(line_dir):
 
 def compute_metrics(summary_df):
     """
-    Costruisce una tabella con:
-    - valori assoluti
-    - differenze percentuali tra livelli successivi
+    Build two tables:
+    - absolute values
+    - percentage differences between consecutive refinement levels
     """
     summary_df = summary_df.set_index("tag")
 
@@ -151,7 +156,7 @@ def compute_metrics(summary_df):
 
     metrics_df = pd.DataFrame(rows)
 
-    # differenze percentuali su coppie consecutive
+    # Percentage differences for consecutive pairs
     pair_rows = []
     pairs = [("L08", "L12"), ("L12", "L16"), ("L08", "L16")]
 
@@ -189,7 +194,7 @@ def make_plot(profiles, out_png):
 
     plt.xlabel("x [mm]")
     plt.ylabel("S11 [MPa]")
-    plt.title("Confronto profili S11(x) - layer refinement")
+    plt.title("Comparison of S11(x) profiles - layer refinement")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
@@ -234,41 +239,41 @@ def write_report(summary_df, pair_df, report_txt):
         d_mins11_12_16 is not None
     ):
         if (
-            d_mises_12_16 < CONVERGENCE_THRESHOLD_PERCENT and
-            d_maxs11_12_16 < CONVERGENCE_THRESHOLD_PERCENT and
-            d_mins11_12_16 < CONVERGENCE_THRESHOLD_PERCENT
+            d_mises_12_16 < convergence_threshold_percent and
+            d_maxs11_12_16 < convergence_threshold_percent and
+            d_mins11_12_16 < convergence_threshold_percent
         ):
             conclusions.append(
-                "Il confronto L12 -> L16 mostra variazioni inferiori alla soglia del "
-                "{:.1f}% per max von Mises, max S11 e min S11. "
-                "Questo suggerisce una sostanziale convergenza rispetto al numero di layer.".format(
-                    CONVERGENCE_THRESHOLD_PERCENT
+                "The L12 -> L16 comparison shows variations below the {:.1f}% threshold "
+                "for max von Mises, max S11, and min S11. "
+                "This suggests substantial convergence with respect to the number of layers.".format(
+                    convergence_threshold_percent
                 )
             )
             conclusions.append(
-                "Conclusione preliminare: la Fase A può essere considerata chiusa "
-                "e si può passare alla sensitivity analysis sull'esponente n."
+                "Preliminary conclusion: Phase A can be considered complete "
+                "and the study can proceed to the sensitivity analysis on exponent n."
             )
         else:
             conclusions.append(
-                "Il confronto L12 -> L16 mostra variazioni ancora non trascurabili "
-                "in almeno una delle metriche principali."
+                "The L12 -> L16 comparison still shows non-negligible variations "
+                "in at least one of the main scalar metrics."
             )
             conclusions.append(
-                "Conclusione preliminare: la convergenza non è ancora pienamente dimostrata "
-                "solo dai valori scalari; conviene verificare anche il grafico S11(x)."
+                "Preliminary conclusion: convergence is not yet fully demonstrated "
+                "by scalar values alone; the S11(x) plot should also be checked."
             )
     else:
         conclusions.append(
-            "Non è stato possibile valutare automaticamente il confronto L12 -> L16."
+            "Automatic evaluation of the L12 -> L16 comparison could not be completed."
         )
 
     lines = []
-    lines.append("REPORT DI CONVERGENZA - FASE A")
+    lines.append("CONVERGENCE REPORT - PHASE A")
     lines.append("=" * 50)
     lines.append("")
 
-    lines.append("VALORI ESTRATTI")
+    lines.append("EXTRACTED VALUES")
     lines.append("-" * 50)
     for tag in ["L08", "L12", "L16"]:
         if tag in summary_df.index:
@@ -283,7 +288,7 @@ def write_report(summary_df, pair_df, report_txt):
             )
 
     lines.append("")
-    lines.append("DIFFERENZE PERCENTUALI ASSOLUTE")
+    lines.append("ABSOLUTE PERCENT DIFFERENCES")
     lines.append("-" * 50)
 
     for _, row in pair_df.iterrows():
@@ -297,7 +302,7 @@ def write_report(summary_df, pair_df, report_txt):
         )
 
     lines.append("")
-    lines.append("CONCLUSIONI AUTOMATICHE")
+    lines.append("AUTOMATIC CONCLUSIONS")
     lines.append("-" * 50)
     for c in conclusions:
         lines.append(c)
@@ -305,37 +310,37 @@ def write_report(summary_df, pair_df, report_txt):
     with open(report_txt, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-# ============================================================
+# =========================================
 # MAIN
-# ============================================================
+# =========================================
 
 def main():
     print("=" * 70)
-    print("ANALISI RISULTATI LAYER - AVVIO")
+    print("LAYER RESULTS ANALYSIS - START")
     print("=" * 70)
 
-    if not os.path.isdir(ROOT_DIR):
-        raise FileNotFoundError("ROOT_DIR non trovato: {}".format(ROOT_DIR))
+    if not os.path.isdir(root_dir):
+        raise FileNotFoundError("root_dir not found: {}".format(root_dir))
 
-    if not os.path.isdir(RESULTS_DIR):
-        raise FileNotFoundError("python_results non trovato: {}".format(RESULTS_DIR))
+    if not os.path.isdir(results_dir):
+        raise FileNotFoundError("python_results not found: {}".format(results_dir))
 
-    summary_df = load_summary(SUMMARY_CSV)
-    profiles = load_line_profiles(LINE_DIR)
+    summary_df = load_summary(summary_csv)
+    profiles = load_line_profiles(line_dir)
 
     metrics_df, pair_df = compute_metrics(summary_df)
 
-    metrics_df.to_csv(METRICS_CSV, index=False)
-    make_plot(profiles, PLOT_PNG)
-    write_report(summary_df, pair_df, REPORT_TXT)
+    metrics_df.to_csv(metrics_csv, index=False)
+    make_plot(profiles, plot_png)
+    write_report(summary_df, pair_df, report_txt)
 
-    print("Summary letto da       : {}".format(SUMMARY_CSV))
-    print("Profili letti da       : {}".format(LINE_DIR))
-    print("Metriche salvate in    : {}".format(METRICS_CSV))
-    print("Grafico salvato in     : {}".format(PLOT_PNG))
-    print("Report salvato in      : {}".format(REPORT_TXT))
+    print("Summary loaded from    : {}".format(summary_csv))
+    print("Profiles loaded from   : {}".format(line_dir))
+    print("Metrics saved to       : {}".format(metrics_csv))
+    print("Plot saved to          : {}".format(plot_png))
+    print("Report saved to        : {}".format(report_txt))
     print("")
-    print("ANALISI COMPLETATA")
+    print("ANALYSIS COMPLETED")
 
 if __name__ == "__main__":
     main()
