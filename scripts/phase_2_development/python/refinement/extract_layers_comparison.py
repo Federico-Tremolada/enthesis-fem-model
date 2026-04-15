@@ -1,33 +1,48 @@
-# -*- coding: utf-8 -*-
 """
-Abaqus Python script
-Confronto rapido modelli power-law n=2 con diverso numero di layer.
+Script: extract_layers_comparison.py
+Author: FEDERICO TREMOLADA
 
-COSA FA
-- Cerca automaticamente, dentro ROOT_DIR, le cartelle che contengono:
-    L08, L12, L16
-- Dentro ciascuna cartella cerca il file .odb
-- Apre l'ODB
-- Estrae dall'ultimo frame dello step scelto:
+Purpose:
+Perform a rapid comparison of power-law n=2 Abaqus models with different
+numbers of enthesis layers by extracting global stress metrics and the S11
+centerline profile.
+
+Models:
+- Any model folder whose name contains L08
+- Any model folder whose name contains L12
+- Any model folder whose name contains L16
+- Additional model folders following the same tag-based naming convention
+
+Input:
+- Abaqus .odb files stored inside model subfolders
+
+Operations:
+- Automatically search inside the selected base directory for folders containing
+  the tags L08, L12, and L16
+- Find the corresponding .odb file inside each model folder
+- Open the ODB file
+- Extract from the last frame of the selected step:
     * max von Mises
     * max S11
     * min S11
-- Estrae anche il profilo S11(x) sulla mezzeria del provino
-- Salva:
-    1) summary_layers.csv in ./python_results/
-    2) <model_name>_line.csv dentro ogni cartella modello
-    3) copia dei line csv in ./python_results/line_profiles/
-    4) errors_log.csv se ci sono errori
+- Extract the S11(x) profile along the specimen centerline
+- Save one summary CSV
+- Save one line-profile CSV inside each model folder
+- Save a centralized copy of all line-profile CSV files
+- Save an error log CSV if processing errors occur
 
-COME LANCIARE
-abaqus python extract_layers_comparison.py
+Output:
+- python_results/summary_layers.csv
+- <model_name>_line.csv inside each model folder
+- python_results/line_profiles/<model_name>_line.csv
+- python_results/errors_log.csv
 
-NOTE IMPORTANTI
-- Cambia ROOT_DIR con la tua cartella principale
-- Questo script usa una ricerca automatica delle cartelle, quindi
-  non dipende da nomi esatti tipo PWR_n2_L08 o M10_PWR_n2_L08_v1
-- Cerca cartelle che contengano nel nome:
-    "L08", "L12", "L16"
+Notes:
+This script is intended for rapid comparison of layer-refinement models in
+Abaqus Python.
+Update the base_folder variable according to your own project structure.
+The script uses automatic folder detection based on L08, L12, and L16 tags,
+so it does not depend on exact folder names.
 """
 
 from odbAccess import openOdb
@@ -35,31 +50,33 @@ import os
 import csv
 import traceback
 
-# ============================================================
-# CONFIGURAZIONE UTENTE
-# ============================================================
+# =========================================
+# USER SETTINGS
+# =========================================
 
-ROOT_DIR = r"C:\Users\fedet\OneDrive\Desktop\P01_TendonBone_Interface\II_Power_Law_Development\01_Abaqus_sims\01_FaseA_Refinement"
+# Base folder containing the model subfolders with .odb files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
 
-# Tag che identificano i modelli da confrontare
+# Tags identifying the models to compare
 TARGET_TAGS = ["L08", "L12", "L16"]
 
-# Se None usa automaticamente il primo step disponibile
+# If None, automatically use the first available step
 STEP_NAME = None
 
-# Geometria del provino: altezza = 6 mm -> mezzeria a y = 3 mm
+# Specimen geometry: height = 6 mm -> centerline at y = 3 mm
 MID_Y = 3.0
 Y_TOL = 0.20
 
-# Cartelle output
-RESULTS_DIR = os.path.join(ROOT_DIR, "python_results")
+# Output folders
+RESULTS_DIR = os.path.join(base_folder, "python_results")
 LINE_DIR = os.path.join(RESULTS_DIR, "line_profiles")
 SUMMARY_CSV = os.path.join(RESULTS_DIR, "summary_layers.csv")
 ERROR_CSV = os.path.join(RESULTS_DIR, "errors_log.csv")
 
-# ============================================================
-# FUNZIONI UTILI
-# ============================================================
+# =========================================
+# UTILITY FUNCTIONS
+# =========================================
 
 def ensure_dir(path):
     if not os.path.exists(path):
@@ -67,11 +84,11 @@ def ensure_dir(path):
 
 def find_matching_folder(root_dir, tag):
     """
-    Cerca nella cartella root la prima sottocartella che contiene 'tag' nel nome.
-    Esempi validi:
+    Search in the root folder for the first subfolder containing the given tag.
+    Valid examples:
     - PWR_n2_L08
     - M10_PWR_n2_L08_v1
-    - prova_L08_finale
+    - test_L08_final
     """
     candidates = []
     for name in os.listdir(root_dir):
@@ -82,13 +99,13 @@ def find_matching_folder(root_dir, tag):
     if len(candidates) == 0:
         return None
 
-    # Ordinamento semplice per avere comportamento stabile
+    # Simple sorting for stable behavior
     candidates.sort()
     return candidates[0]
 
 def find_odb_in_folder(folder_path):
     """
-    Cerca il primo file .odb nella cartella.
+    Find the first .odb file inside the folder.
     """
     odbs = []
     for fname in os.listdir(folder_path):
@@ -107,34 +124,34 @@ def get_step_and_last_frame(odb, requested_step_name=None):
     else:
         step_names = list(odb.steps.keys())
         if not step_names:
-            raise RuntimeError("Nessuno step trovato nell'ODB.")
+            raise RuntimeError("No step found in the ODB.")
         step = odb.steps[step_names[0]]
 
     if len(step.frames) == 0:
-        raise RuntimeError("Nessun frame trovato nello step.")
+        raise RuntimeError("No frame found in the selected step.")
     frame = step.frames[-1]
 
     return step, frame
 
 def find_main_instance(odb):
     """
-    Restituisce la prima instance disponibile.
+    Return the first available instance.
     """
     instances = odb.rootAssembly.instances
     if not instances:
-        raise RuntimeError("Nessuna instance trovata nell'assembly.")
+        raise RuntimeError("No instance found in the assembly.")
 
     instance_name = list(instances.keys())[0]
     return instances[instance_name]
 
 def get_element_centroids(instance):
     """
-    Restituisce:
+    Return:
     dict elementLabel -> (x_centroid, y_centroid)
     """
     centroids = {}
 
-    # Mappa nodi per accesso rapido
+    # Node map for faster access
     node_map = {}
     for node in instance.nodes:
         node_map[node.label] = node.coordinates
@@ -156,7 +173,7 @@ def get_element_centroids(instance):
 
 def extract_summary_and_line(odb_path, model_name, step_name=None):
     """
-    Estrae summary globale + profilo S11(x) sulla mezzeria.
+    Extract global summary values and the S11(x) profile along the centerline.
     """
     odb = None
     try:
@@ -167,7 +184,7 @@ def extract_summary_and_line(odb_path, model_name, step_name=None):
         centroids = get_element_centroids(instance)
 
         if "S" not in frame.fieldOutputs:
-            raise RuntimeError("Field output 'S' non trovato nel frame.")
+            raise RuntimeError("Field output 'S' not found in the frame.")
 
         stress_field = frame.fieldOutputs["S"]
 
@@ -199,16 +216,16 @@ def extract_summary_and_line(odb_path, model_name, step_name=None):
             except:
                 pass
 
-            # Profilo sulla mezzeria
+            # Centerline profile
             if s11 is not None and abs(y_c - MID_Y) <= Y_TOL:
                 line_data.append((x_c, s11, elem_label))
 
         if not mises_vals:
-            raise RuntimeError("Nessun valore von Mises estratto.")
+            raise RuntimeError("No von Mises values extracted.")
         if not s11_vals:
-            raise RuntimeError("Nessun valore S11 estratto.")
+            raise RuntimeError("No S11 values extracted.")
         if not line_data:
-            raise RuntimeError("Nessun punto trovato sulla mezzeria. Aumenta Y_TOL.")
+            raise RuntimeError("No points found on the centerline. Increase Y_TOL.")
 
         line_data.sort(key=lambda row: row[0])
 
@@ -271,9 +288,9 @@ def write_error_csv(errors, csv_path):
         for model_name, msg in errors:
             writer.writerow([model_name, msg])
 
-# ============================================================
+# =========================================
 # MAIN
-# ============================================================
+# =========================================
 
 def main():
     ensure_dir(RESULTS_DIR)
@@ -283,36 +300,36 @@ def main():
     errors = []
 
     print("=" * 72)
-    print("ESTRAZIONE CONFRONTO LAYER - AVVIO")
-    print("ROOT_DIR = {}".format(ROOT_DIR))
+    print("LAYER COMPARISON EXTRACTION - START")
+    print("Base folder = {}".format(base_folder))
     print("=" * 72)
 
-    if not os.path.isdir(ROOT_DIR):
-        print("ERRORE FATALE: ROOT_DIR non esiste.")
-        print(ROOT_DIR)
+    if not os.path.isdir(base_folder):
+        print("FATAL ERROR: base_folder does not exist.")
+        print(base_folder)
         return
 
     for tag in TARGET_TAGS:
-        print("\n--- Ricerca modello con tag: {} ---".format(tag))
+        print("\n--- Searching model with tag: {} ---".format(tag))
 
-        model_folder = find_matching_folder(ROOT_DIR, tag)
+        model_folder = find_matching_folder(base_folder, tag)
         if model_folder is None:
-            msg = "Nessuna cartella trovata per tag '{}'".format(tag)
-            print("ERRORE: " + msg)
+            msg = "No folder found for tag '{}'".format(tag)
+            print("ERROR: " + msg)
             errors.append((tag, msg))
             continue
 
         model_name = os.path.basename(model_folder)
-        print("Cartella trovata: {}".format(model_folder))
+        print("Folder found: {}".format(model_folder))
 
         odb_path = find_odb_in_folder(model_folder)
         if odb_path is None:
-            msg = "Nessun file .odb trovato nella cartella '{}'".format(model_name)
-            print("ERRORE: " + msg)
+            msg = "No .odb file found in folder '{}'".format(model_name)
+            print("ERROR: " + msg)
             errors.append((model_name, msg))
             continue
 
-        print("ODB trovato: {}".format(os.path.basename(odb_path)))
+        print("ODB found: {}".format(os.path.basename(odb_path)))
 
         try:
             result = extract_summary_and_line(
@@ -323,47 +340,47 @@ def main():
 
             summary_rows.append(result)
 
-            # CSV profilo nella cartella del modello
+            # Line CSV in the model folder
             model_line_csv = os.path.join(
                 model_folder,
                 "{}_line.csv".format(model_name)
             )
             write_line_csv(result["line_data"], model_line_csv, model_name)
 
-            # Copia centralizzata dei profili
+            # Centralized copy of line profiles
             central_line_csv = os.path.join(
                 LINE_DIR,
                 "{}_line.csv".format(model_name)
             )
             write_line_csv(result["line_data"], central_line_csv, model_name)
 
-            print("Profilo salvato in: {}".format(model_line_csv))
-            print("Copia profilo salvata in: {}".format(central_line_csv))
+            print("Line profile saved to: {}".format(model_line_csv))
+            print("Central line copy saved to: {}".format(central_line_csv))
             print("Step      : {}".format(result["step_name"]))
             print("Frame ID  : {}".format(result["frame_id"]))
             print("Max Mises : {:.6f}".format(result["max_mises"]))
             print("Max S11   : {:.6f}".format(result["max_s11"]))
             print("Min S11   : {:.6f}".format(result["min_s11"]))
-            print("N punti linea: {}".format(len(result["line_data"])))
+            print("Line points: {}".format(len(result["line_data"])))
 
         except Exception as e:
-            msg = "Errore durante l'elaborazione: {}".format(str(e))
-            print("ERRORE: " + msg)
+            msg = "Processing error: {}".format(str(e))
+            print("ERROR: " + msg)
             traceback.print_exc()
             errors.append((model_name, msg))
 
     if summary_rows:
         write_summary_csv(summary_rows, SUMMARY_CSV)
-        print("\nSummary salvato in: {}".format(SUMMARY_CSV))
+        print("\nSummary saved to: {}".format(SUMMARY_CSV))
     else:
-        print("\nNessun risultato valido da salvare nel summary.")
+        print("\nNo valid results available for the summary file.")
 
     if errors:
         write_error_csv(errors, ERROR_CSV)
-        print("Error log salvato in: {}".format(ERROR_CSV))
+        print("Error log saved to: {}".format(ERROR_CSV))
 
     print("\n" + "=" * 72)
-    print("ESTRAZIONE COMPLETATA")
+    print("EXTRACTION COMPLETED")
     print("=" * 72)
 
 if __name__ == "__main__":
