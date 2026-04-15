@@ -180,16 +180,7 @@ Analysis of physically enhanced models (variable Poisson ratio).
 ---
 
 ## Data Flow
-Abaqus (.odb)
-    ↓
-Python extraction
-    ↓
-CSV datasets
-    ↓
-MATLAB / Python analysis
-    ↓
-Plots + metrics (results/)
-
+Abaqus (.odb) --> Python extraction --> CSV datasets --> MATLAB / Python analysis --> Plots + metrics (results/)
 
 ---
 
