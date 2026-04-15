@@ -1,42 +1,42 @@
 """
-============================================================
-DATA EXTRACTION — S11 PROFILE ALONG INTERFACE
-============================================================
+Script: extract_line.py
+Author: FEDERICO TREMOLADA
 
-Description:
-This script extracts stress data along a predefined line
-from Abaqus output databases (.odb).
+Purpose:
+Extract the S11 stress profile along a predefined interface line from Abaqus
+output databases for quantitative comparison between tendon-bone FEM models.
 
-It focuses on retrieving the S11 stress component along
-the tendon–bone interface for subsequent analysis.
-
-Specifically, it:
-- opens Abaqus .odb files
-- identifies nodes/elements along a defined path
-- extracts S11 stress values
-- exports results to CSV format
-
-Engineering objective:
-Obtain a consistent stress profile S11(x) to enable
-quantitative comparison between different material models.
+Models:
+- Any Abaqus model stored in subfolders inside the selected base directory
+- Models sharing the same geometry and coordinate system
+- Additional models following the same folder-based structure
 
 Input:
-- Abaqus .odb file
-- predefined path or node set
+- Abaqus .odb files stored inside model subfolders
+- A consistent extraction line implicitly identified from the element row
+  closest to the specimen mid-height
+
+Operations:
+- Search model folders inside the selected base directory
+- Find the corresponding .odb file in each folder
+- Open the Abaqus output database
+- Select the analysis step and last frame
+- Identify elements along the interface-aligned extraction row
+- Extract S11 stress values and von Mises stress values
+- Export the extracted profile to CSV format for each model
 
 Output:
-- CSV file containing:
-    x   → coordinate along the interface [mm]
-    S11 → longitudinal stress [MPa]
+- <model_name>_line.csv inside each model folder, containing:
+    x         -> coordinate along the interface [mm]
+    S11       -> longitudinal stress [MPa]
+    Mises     -> von Mises stress [MPa]
+    model_name
+    step_name
 
 Notes:
-- The extraction path must be consistent across all models
-- Output CSV files are used as input for analysis scripts
-
-Author: FEDERICO TREMOLADA
-Project: Entesis FEM Study
-Version: v1.0
-============================================================
+This script is intended for Abaqus Python post-processing.
+The extraction path must remain consistent across all models.
+Update the base_folder variable according to your own project structure.
 """
 
 import os
@@ -44,6 +44,17 @@ import csv
 from odbAccess import openOdb
 from abaqusConstants import INTEGRATION_POINT
 
+# =========================================
+# USER SETTINGS
+# =========================================
+
+# Base folder containing model subfolders with .odb files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
+
+# =========================================
+# FUNCTIONS
+# =========================================
 
 def find_model_folders(root_dir):
     ignore = {
@@ -223,8 +234,12 @@ def save_csv(output_path, data):
         writer.writerows(data)
 
 
+# =========================================
+# MAIN
+# =========================================
+
 def main():
-    root = os.getcwd()
+    root = base_folder
     folders = find_model_folders(root)
 
     if len(folders) == 0:
