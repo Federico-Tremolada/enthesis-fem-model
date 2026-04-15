@@ -121,10 +121,6 @@ The results highlight clear differences between sharp and graded configurations,
 
 ![S11 comparison](docs/images/S11_comparison_advanced.png)
 
-### Elastic Energy Distribution
-
-![Energy distribution](docs/images/SENER_comparison.png)
-
 ---
 
 ## Key Findings
@@ -202,7 +198,11 @@ To improve the physical realism of the model, a second development phase was imp
 
 - extraction of elastic strain energy (SENER)  
 - evaluation of energy distribution along the interface  
-- identification of energy concentration zones  
+- identification of energy concentration zones
+
+### Elastic Energy Distribution
+
+![Energy distribution](docs/images/SENER_comparison.pn)
 
 ---
 
