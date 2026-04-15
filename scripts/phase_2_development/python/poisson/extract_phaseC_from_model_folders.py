@@ -1,28 +1,41 @@
+"""
+Script: extract_phaseC_from_model_folders.py
+Author: FEDERICO TREMOLADA
+
+Purpose:
+Extract Phase C Abaqus results from model folders, including global stress
+metrics and centerline profiles.
+
+Models:
+- M17_PWR_n3_L16_nuConst_v1
+- M18_PWR_n3_L16_nuVar_v1
+- Any additional model folder structured in the same way
+
+Input:
+- Abaqus .odb files stored inside model subfolders
+
+Operations:
+- Search selected model folders or automatically detect valid model folders
+- Find the corresponding .odb file in each model folder
+- Open the last frame of the selected analysis step
+- Extract max von Mises stress
+- Extract max S11 and min S11
+- Extract coordinates of the stress peaks
+- Extract the profile along the centerline around y = 3.0 mm
+- Save one summary CSV
+- Save one line-profile CSV for each model
+
+Output:
+- results_summary/summary_phaseC.csv
+- results_summary/line_profiles_phaseC/<model_name>_line.csv
+
+Notes:
+This script is intended for Phase C post-processing of stress distributions
+and centerline profiles.
+Update the base_folder variable according to your own project structure.
+"""
+
 # -*- coding: utf-8 -*-
-# Abaqus Python script
-# Estrazione risultati Fase C:
-# - max von Mises
-# - max S11
-# - min S11
-# - coordinate dei picchi
-# - profilo lungo la mezzeria y = 3.0 mm
-#
-# Struttura attesa:
-# cartella_progetto/
-#   M17_PWR_n3_L16_nuConst_v1/
-#       *.odb
-#   M18_PWR_n3_L16_nuVar_v1/
-#       *.odb
-#   python/
-#       extract_phaseC_from_model_folders.py
-#
-# Output:
-# cartella_progetto/
-#   results_summary/
-#       summary_phaseC.csv
-#       line_profiles_phaseC/
-#           M17_..._line.csv
-#           M18_..._line.csv
 
 from odbAccess import openOdb
 from abaqusConstants import *
@@ -30,9 +43,13 @@ import os
 import csv
 import traceback
 
-# ============================================================
-# PARAMETRI UTENTE
-# ============================================================
+# =========================================
+# USER SETTINGS
+# =========================================
+
+# Base folder containing model subfolders with .odb files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
 
 Y_TARGET = 3.0
 Y_TOL = 0.25
@@ -44,9 +61,9 @@ MODEL_FOLDERS = [
 
 PREFERRED_STEP = "Step-1"
 
-# ============================================================
-# FUNZIONI BASE
-# ============================================================
+# =========================================
+# BASIC FUNCTIONS
+# =========================================
 
 def safe_makedirs(path):
     if not os.path.isdir(path):
@@ -58,7 +75,7 @@ def mean(values):
     return sum(values) / float(len(values))
 
 def find_project_root():
-    return os.getcwd()
+    return base_folder
 
 def list_model_folders(project_root):
     model_names = []
@@ -69,7 +86,7 @@ def list_model_folders(project_root):
             if os.path.isdir(full):
                 model_names.append(name)
             else:
-                print("ATTENZIONE: cartella non trovata -> %s" % full)
+                print("WARNING: folder not found -> %s" % full)
         return model_names
 
     items = os.listdir(project_root)
@@ -214,9 +231,9 @@ def average_stress_per_element(stress_field):
 
     return elem_data
 
-# ============================================================
-# ESTRAZIONE
-# ============================================================
+# =========================================
+# EXTRACTION
+# =========================================
 
 def extract_summary_and_line(odb_path, output_line_csv):
     odb = openOdb(path=odb_path, readOnly=True)
@@ -227,7 +244,7 @@ def extract_summary_and_line(odb_path, output_line_csv):
         print("  Frame ID  : %s" % str(frame.incrementNumber))
 
         if 'S' not in frame.fieldOutputs.keys():
-            raise RuntimeError("Campo 'S' non trovato nell'ultimo frame.")
+            raise RuntimeError("Field output 'S' not found in the last frame.")
 
         stress_field = frame.fieldOutputs['S']
         instance = select_main_instance(odb)
@@ -253,7 +270,7 @@ def extract_summary_and_line(odb_path, output_line_csv):
             })
 
         if len(rows_all) == 0:
-            raise RuntimeError("Nessun dato stress disponibile dopo ricostruzione.")
+            raise RuntimeError("No stress data available after reconstruction.")
 
         row_max_mises = rows_all[0]
         row_max_s11 = rows_all[0]
@@ -287,8 +304,8 @@ def extract_summary_and_line(odb_path, output_line_csv):
 
         if len(line_rows) == 0:
             raise RuntimeError(
-                "Nessun elemento trovato vicino a y=%.3f con tolleranza %.3f. "
-                "Aumenta Y_TOL." % (Y_TARGET, Y_TOL)
+                "No elements found near y=%.3f with tolerance %.3f. "
+                "Increase Y_TOL." % (Y_TARGET, Y_TOL)
             )
 
         line_rows.sort(key=lambda rr: rr['x'])
@@ -312,9 +329,9 @@ def extract_summary_and_line(odb_path, output_line_csv):
     finally:
         odb.close()
 
-# ============================================================
+# =========================================
 # MAIN
-# ============================================================
+# =========================================
 
 def main():
     project_root = find_project_root()
@@ -322,7 +339,7 @@ def main():
     print("\n=== DEBUG PATH ===")
     print("Working directory: %s" % project_root)
 
-    print("\nContenuto cartella:")
+    print("\nFolder contents:")
     for item in os.listdir(project_root):
         print(" - %s" % item)
 
@@ -336,12 +353,12 @@ def main():
 
     model_folders = list_model_folders(project_root)
 
-    print("\nModelli trovati:")
+    print("\nDetected models:")
     for m in model_folders:
         print(" - %s" % m)
 
     if len(model_folders) == 0:
-        print("\nNessuna cartella modello trovata. Fine.")
+        print("\nNo model folders found. End.")
         return
 
     summary_rows = []
@@ -353,7 +370,7 @@ def main():
         odb_path = find_odb_in_folder(folder_path)
 
         if odb_path is None:
-            print("  Nessun ODB trovato nella cartella.")
+            print("  No ODB found in the folder.")
             continue
 
         print("  ODB found  : %s" % os.path.basename(odb_path))
@@ -383,7 +400,7 @@ def main():
             ])
 
         except Exception as e:
-            print("  ERRORE su %s" % model_name)
+            print("  ERROR on %s" % model_name)
             print("  %s" % str(e))
             traceback.print_exc()
 
@@ -403,10 +420,10 @@ def main():
 
     fsum.close()
 
-    print("\nFINE.")
-    print("Summary salvato in:")
+    print("\nDONE.")
+    print("Summary saved to:")
     print("  %s" % summary_csv)
-    print("Profili salvati in:")
+    print("Line profiles saved to:")
     print("  %s" % line_dir)
 
 if __name__ == "__main__":
