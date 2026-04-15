@@ -10,13 +10,13 @@ The study compares a constant Poisson’s ratio model with a spatially varying P
 
 * `S11_poisson_comparison.png` → comparison of S11 stress profiles
 
-* `Mises_poisson_comparison.png` → comparison of von Mises stress profiles
+* `mises_poisson_comparison.png` → comparison of von Mises stress profiles
 
-* `Mises_peak_position_poisson.png` → position of maximum von Mises stress
+* `mises_peak_position_poisson.png` → position of maximum von Mises stress
 
-* `summary_phaseC.csv` → extracted stress data
+* `summary_poisson.csv` → extracted stress data
 
-* `phaseC_final_table.csv` → summary of key metrics
+* `poisson_final_table.csv` → summary of key metrics
 
 ---
 
