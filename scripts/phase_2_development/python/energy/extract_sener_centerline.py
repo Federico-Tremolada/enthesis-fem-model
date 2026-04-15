@@ -1,15 +1,41 @@
-# -*- coding: utf-8 -*-
-# Uso:
-#   abaqus python extract_sener_centerline.py
-#
-# Cosa fa:
-# 1) Cerca solo le sottocartelle che finiscono con "_sener"
-# 2) In ciascuna cartella cerca il file .odb
-# 3) Apre l'ultimo frame del primo step
-# 4) Estrae SENER sugli elementi vicini alla mezzeria
-# 5) Salva un CSV per ogni modello
-# 6) Salva un CSV combinato
-# 7) Genera un grafico PNG di confronto
+"""
+Script: extract_sener_centerline.py
+Author: FEDERICO TREMOLADA
+
+Purpose:
+Extract element-averaged elastic strain energy density (SENER) along the
+specimen centerline from Abaqus models.
+
+Models:
+- Any model stored in subfolders ending with "_sener"
+- Folder structure compatible with the project organization
+- Additional models following the same naming convention
+
+Input:
+- Abaqus .odb files stored inside model subfolders
+- Centerline target coordinate and tolerance defined in the user settings
+
+Operations:
+- Search only subfolders ending with "_sener"
+- Find the corresponding .odb file inside each folder
+- Open the last frame of the first step
+- Extract SENER at integration points
+- Compute element-average SENER values
+- Filter elements close to the centerline
+- Save one CSV per model
+- Save one combined CSV
+- Optionally generate a comparison PNG plot
+
+Output:
+- One *_SENER_centerline.csv file for each model
+- SENER_centerline_all_models.csv
+- SENER_centerline_comparison.png
+
+Notes:
+This script is intended for centerline-based comparison of local SENER
+distribution between models.
+Update the base_folder variable according to your own project structure.
+"""
 
 from odbAccess import openOdb
 from abaqusConstants import INTEGRATION_POINT
@@ -17,25 +43,27 @@ import os
 import csv
 import traceback
 
-# =========================================================
+# =========================================
 # USER SETTINGS
-# =========================================================
+# =========================================
 
-base_folder = os.getcwd()   # cartella da cui lanci lo script
+# Base folder containing model subfolders ending with "_sener".
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
 
-# Mezzeria del provino
+# Specimen centerline
 y_target = 3.0      # mm
-y_tol = 0.20        # tolleranza attorno alla mezzeria
+y_tol = 0.20        # tolerance around the centerline
 
-# Se None, usa automaticamente la prima instance trovata
+# If None, automatically use the first instance found
 target_instance_name = None
 
 combined_csv = os.path.join(base_folder, "SENER_centerline_all_models.csv")
 combined_png = os.path.join(base_folder, "SENER_centerline_comparison.png")
 
-# =========================================================
-# FUNZIONI UTILI
-# =========================================================
+# =========================================
+# FUNCTIONS
+# =========================================
 
 def find_odb_in_folder(folder_path):
     odb_files = [f for f in os.listdir(folder_path) if f.lower().endswith(".odb")]
@@ -99,8 +127,8 @@ def element_centroid_2d(elem, node_dict):
 
 def extract_sener_by_element(frame, instance):
     """
-    Restituisce un dizionario:
-    elementLabel -> valore medio di SENER su tutti gli integration points dell'elemento
+    Return a dictionary:
+    elementLabel -> average SENER value over all integration points of the element
     """
     if "SENER" not in frame.fieldOutputs:
         return None
@@ -151,6 +179,11 @@ def save_combined_csv(csv_path, rows):
 
 
 def make_comparison_plot(rows, png_path):
+    """
+    Optional plot:
+    save a PNG comparison chart with SENER values along the centerline.
+    If matplotlib is not available in the Abaqus environment, skip without error.
+    """
     try:
         import matplotlib
         matplotlib.use("Agg")
@@ -173,37 +206,37 @@ def make_comparison_plot(rows, png_path):
             ys = [p[1] for p in pts_sorted]
             plt.plot(xs, ys, marker="o", markersize=3, linewidth=1.2, label=model)
 
-        plt.xlabel("x sulla mezzeria [mm]")
+        plt.xlabel("x along centerline [mm]")
         plt.ylabel("SENER")
-        plt.title("Confronto SENER lungo la mezzeria")
+        plt.title("Comparison of SENER along the centerline")
         plt.grid(True)
         plt.legend()
         plt.tight_layout()
         plt.savefig(png_path, dpi=200)
         plt.close()
 
-        print("[OK] Grafico salvato in: {}".format(png_path))
+        print("[OK] Plot saved to: {}".format(png_path))
 
     except Exception as e:
-        print("[WARNING] Impossibile creare il grafico.")
-        print("Motivo: {}".format(str(e)))
+        print("[WARNING] Unable to create PNG chart.")
+        print("Reason: {}".format(str(e)))
 
 
-# =========================================================
+# =========================================
 # MAIN
-# =========================================================
+# =========================================
 
 def main():
     print("=" * 70)
-    print("ESTRAZIONE SENER LUNGO LA MEZZERIA")
+    print("SENER EXTRACTION ALONG THE CENTERLINE")
     print("=" * 70)
-    print("Cartella base : {}".format(base_folder))
-    print("y_target      : {}".format(y_target))
-    print("y_tol         : {}".format(y_tol))
+    print("Base folder : {}".format(base_folder))
+    print("y_target    : {}".format(y_target))
+    print("y_tol       : {}".format(y_tol))
     print("")
 
     if not os.path.isdir(base_folder):
-        print("[ERRORE] La cartella base non esiste.")
+        print("[ERROR] Base folder does not exist.")
         return
 
     subfolders = [
@@ -212,7 +245,7 @@ def main():
     ]
 
     if len(subfolders) == 0:
-        print("[ERRORE] Nessuna sottocartella *_sener trovata.")
+        print("[ERROR] No *_sener subfolders found.")
         return
 
     combined_rows = []
@@ -222,16 +255,16 @@ def main():
         odb_path = find_odb_in_folder(folder_path)
 
         print("-" * 70)
-        print("Cartella sorgente: {}".format(folder_name))
+        print("Source folder: {}".format(folder_name))
 
         if odb_path is None:
-            print("[WARNING] Nessun ODB trovato: salto.")
+            print("[WARNING] No ODB found: skipping.")
             continue
 
         model_name = clean_model_name(folder_name)
 
-        print("Modello        : {}".format(model_name))
-        print("ODB            : {}".format(os.path.basename(odb_path)))
+        print("Model         : {}".format(model_name))
+        print("ODB           : {}".format(os.path.basename(odb_path)))
 
         odb = None
         try:
@@ -239,21 +272,21 @@ def main():
 
             step_name, step, frame = get_first_step_and_last_frame(odb)
             if frame is None:
-                print("[WARNING] Nessun frame disponibile.")
+                print("[WARNING] No frame available.")
                 odb.close()
                 continue
 
-            print("Step usato     : {}".format(step_name))
-            print("Frame usato    : ultimo")
+            print("Step used     : {}".format(step_name))
+            print("Frame used    : last")
 
             instance = choose_instance(odb)
-            print("Instance usata : {}".format(instance.name))
+            print("Instance used : {}".format(instance.name))
 
             node_dict = build_node_dict(instance)
             sener_by_elem = extract_sener_by_element(frame, instance)
 
             if sener_by_elem is None:
-                print("[WARNING] SENER non presente nel field output.")
+                print("[WARNING] SENER not found in field output.")
                 odb.close()
                 continue
 
@@ -275,7 +308,7 @@ def main():
             odb.close()
 
             if len(model_rows) == 0:
-                print("[WARNING] Nessun elemento trovato vicino alla mezzeria.")
+                print("[WARNING] No elements found near the centerline.")
                 continue
 
             model_rows = sorted(model_rows, key=lambda r: r[2])
@@ -283,11 +316,11 @@ def main():
             out_csv = os.path.join(folder_path, model_name + "_SENER_centerline.csv")
             save_model_csv(out_csv, model_rows)
 
-            print("[OK] Elementi estratti : {}".format(len(model_rows)))
-            print("[OK] CSV modello      : {}".format(out_csv))
+            print("[OK] Extracted elements : {}".format(len(model_rows)))
+            print("[OK] Model CSV          : {}".format(out_csv))
 
         except Exception as e:
-            print("[ERRORE] Problema durante l'estrazione.")
+            print("[ERROR] Problem during extraction.")
             print(str(e))
             traceback.print_exc()
             if odb is not None:
@@ -298,22 +331,22 @@ def main():
 
     print("")
     print("=" * 70)
-    print("SALVATAGGIO FINALE")
+    print("SAVING FINAL RESULTS")
     print("=" * 70)
 
     if len(combined_rows) == 0:
-        print("[WARNING] Nessun dato complessivo disponibile.")
+        print("[WARNING] No combined data available.")
         return
 
     combined_rows = sorted(combined_rows, key=lambda r: (r[0], r[2]))
     save_combined_csv(combined_csv, combined_rows)
-    print("[OK] CSV combinato salvato in: {}".format(combined_csv))
+    print("[OK] Combined CSV saved to: {}".format(combined_csv))
 
     make_comparison_plot(combined_rows, combined_png)
 
     print("")
     print("=" * 70)
-    print("FINE")
+    print("DONE")
     print("=" * 70)
 
 
