@@ -1,9 +1,5 @@
 # Enthesis FEM Model – Stress and Energy Distribution in Functionally Graded Interfaces
 
-# Enthesis FEM Model – Stress and Energy Distribution in Functionally Graded Interfaces
-
-![S11 Comparison](docs/images/s11_comparison.png)
-
 ![Python](https://img.shields.io/badge/Python-Abaqus%20Post--Processing-blue)
 ![MATLAB](https://img.shields.io/badge/MATLAB-Data%20Analysis-orange)
 ![FEM](https://img.shields.io/badge/Method-Finite%20Element%20Method-green)
