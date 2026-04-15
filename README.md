@@ -115,6 +115,16 @@ Key evaluation criteria include:
 
 The results highlight clear differences between sharp and graded configurations, providing a quantitative basis for model selection.
 
+## Visual Results
+
+### Stress Distribution Along the Interface
+
+![S11 comparison](docs/images/S11_comparison.png)
+
+### Elastic Energy Distribution
+
+![Energy distribution](docs/images/SENER_comparison.png)
+
 ---
 
 ## Key Findings
