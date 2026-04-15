@@ -276,3 +276,11 @@ paper/     → manuscript and figures
 ## Scope
 
 This project focuses on isolating the effect of material grading on stress transfer and energy distribution, rather than optimizing geometry or modeling full biological complexity.
+
+---
+
+## Future Work
+
+- Extension to 3D geometries  
+- Inclusion of nonlinear material behavior  
+- Comparison with experimental data  
