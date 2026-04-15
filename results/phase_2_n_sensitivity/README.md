@@ -10,13 +10,13 @@ The objective is to evaluate how different gradient shapes influence stress dist
 
 * `S11_n_sensitivity_comparison.png` → comparison of S11 stress profiles
 
-* `Mises_n_sensitivity_comparison.png` → comparison of von Mises stress profiles
+* `mises_n_sensitivity_comparison.png` → comparison of von Mises stress profiles
 
-* `Mises_peak_position.png` → position of maximum von Mises stress along the interface
+* `mises_peak_position.png` → position of maximum von Mises stress along the interface
 
-* `summary_phaseB.csv` → extracted stress data
+* `summary_n_sensitivity.csv` → extracted stress data
 
-* `phaseB_final_table.csv` → summary of key metrics
+* `n_sensitivity_final_table.csv` → summary of key metrics
 
 ---
 
