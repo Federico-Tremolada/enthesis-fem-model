@@ -13,6 +13,13 @@ This project investigates how different material transition laws influence both 
 
 The main objective is to evaluate whether functionally graded materials (FGMs) can reduce stress concentrations compared to sharp interfaces, and to identify the most mechanically effective transition law.
 
+## Key Takeaways
+
+- Functionally graded materials reduce stress concentrations
+- Power-law (n = 2) provides optimal stress-energy balance
+- Stress smoothing correlates with distributed elastic energy
+- Results are consistent with FGM theory
+
 ---
 
 ## Problem Statement
