@@ -90,6 +90,21 @@ Outputs:
 
 ---
 
+## Results Overview
+
+The comparative analysis focuses on stress and energy distribution along the tendon–bone interface.
+
+Key evaluation criteria include:
+
+- peak stress magnitude  
+- smoothness of stress distribution  
+- spatial localization of elastic energy  
+- consistency between stress and energy trends  
+
+The results highlight clear differences between sharp and graded configurations, providing a quantitative basis for model selection.
+
+---
+
 ## Key Findings
 
 - The **sharp interface** exhibits the highest stress concentration  
@@ -130,42 +145,12 @@ The **power-law model with n = 2** provides the most favorable response:
 
 ### Selected Model
 
-The **power-law model (n = 2)** is selected as the reference configuration for further development due to its superior performance in:
+The **power-law model (n = 2)** is selected as the reference configuration due to its superior performance in:
 
 - minimizing stress peaks  
 - ensuring gradual load transfer  
 - distributing elastic energy efficiently  
 - reproducing a physically consistent transition  
-
----
-
-## Reproducibility
-
-The entire workflow is fully reproducible:
-
-1. run Abaqus simulations  
-2. execute Python extraction scripts  
-3. run MATLAB/Python analysis scripts  
-
-All intermediate data is stored in CSV format.
-
----
-
-## Repository Structure
-
-```text
-docs/      → technical documentation
-models/    → FEM model descriptions and screenshots
-scripts/   → Python/MATLAB post-processing
-results/   → processed data and plots
-paper/     → manuscript and figures
-```
-
----
-
-## Scope
-
-This project focuses on isolating the effect of material grading on stress transfer and energy distribution, rather than optimizing geometry or modeling full biological complexity.
 
 ---
 
@@ -218,7 +203,7 @@ To improve the physical realism of the model, a second development phase was imp
 
 ## Final Remarks
 
-The integration of stress and energy analysis provides a consistent and physically grounded interpretation of the tendon–bone interface behavior.
+The combined analysis of stress and elastic energy provides a unified and physically consistent interpretation of the tendon–bone interface behavior.
 
 The results demonstrate that:
 
@@ -227,3 +212,33 @@ The results demonstrate that:
 - the selected model captures the essential mechanics of the enthesis  
 
 This establishes a solid foundation for future extensions toward more complex and realistic biological models.
+
+---
+
+## Reproducibility
+
+The entire workflow is fully reproducible:
+
+1. run Abaqus simulations  
+2. execute Python extraction scripts  
+3. run MATLAB/Python analysis scripts  
+
+All intermediate data is stored in CSV format.
+
+---
+
+## Repository Structure
+
+```text
+docs/      → technical documentation
+models/    → FEM model descriptions and screenshots
+scripts/   → Python/MATLAB post-processing
+results/   → processed data and plots
+paper/     → manuscript and figures
+```
+
+---
+
+## Scope
+
+This project focuses on isolating the effect of material grading on stress transfer and energy distribution, rather than optimizing geometry or modeling full biological complexity.
