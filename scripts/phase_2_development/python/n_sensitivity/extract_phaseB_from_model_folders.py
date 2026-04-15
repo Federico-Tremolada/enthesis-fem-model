@@ -1,34 +1,41 @@
-# -*- coding: utf-8 -*-
-# Abaqus Python script
-# Estrazione risultati Fase B:
-# - max von Mises
-# - max S11
-# - min S11
-# - coordinate dei picchi
-# - profilo lungo la mezzeria y = 3.0 mm
-#
-# Struttura attesa:
-# cartella_progetto/
-#   M13_PWR_n1p5_L16_v1/
-#       *.odb
-#       *.inp
-#   M14_PWR_n2_L16_v1/
-#       *.odb
-#   M15_PWR_n3_L16_v1/
-#       *.odb
-#   M16_PWR_n5_L16_v1/
-#       *.odb
-#   python/
-#       extract_phaseB_from_model_folders.py
-#
-# Output:
-# cartella_progetto/
-#   results_summary/
-#       summary_phaseB.csv
-#       line_profiles/
-#           M13_..._line.csv
-#           M14_..._line.csv
-#           ...
+"""
+Script: extract_phaseB_from_model_folders.py
+Author: FEDERICO TREMOLADA
+
+Purpose:
+Extract Phase B Abaqus results from model folders, including global stress
+metrics and centerline profiles.
+
+Models:
+- M13_PWR_n1p5_L16_v1
+- M14_PWR_n2_L16_v1
+- M15_PWR_n3_L16_v1
+- M16_PWR_n5_L16_v1
+- Any additional model folder structured in the same way
+
+Input:
+- Abaqus .odb files stored inside model subfolders
+
+Operations:
+- Search selected model folders or automatically detect valid model folders
+- Find the corresponding .odb file in each model folder
+- Open the last frame of the selected analysis step
+- Extract max von Mises stress
+- Extract max S11 and min S11
+- Extract coordinates of the stress peaks
+- Extract the profile along the centerline around y = 3.0 mm
+- Save one summary CSV
+- Save one line-profile CSV for each model
+
+Output:
+- results_summary/summary_phaseB.csv
+- results_summary/line_profiles/<model_name>_line.csv
+
+Notes:
+This script is intended for Phase B post-processing of stress distributions
+and centerline profiles.
+Update the base_folder variable according to your own project structure.
+"""
 
 from odbAccess import openOdb
 from abaqusConstants import *
@@ -36,18 +43,22 @@ import os
 import csv
 import traceback
 
-# ============================================================
-# PARAMETRI UTENTE
-# ============================================================
+# =========================================
+# USER SETTINGS
+# =========================================
 
-# Mezzeria del provino
+# Base folder containing model subfolders with .odb files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
+
+# Specimen centerline
 Y_TARGET = 3.0
 
-# Tolleranza attorno alla mezzeria
+# Tolerance around the centerline
 Y_TOL = 0.25
 
-# Se vuoi lasciare la ricerca automatica, tieni lista vuota []
-# Altrimenti specifica qui i nomi esatti
+# Leave this list empty [] for automatic folder search.
+# Otherwise, specify the exact model folder names here.
 MODEL_FOLDERS = [
     "M13_PWR_n1p5_L16_v1",
     "M14_PWR_n2_L16_v1",
@@ -55,12 +66,12 @@ MODEL_FOLDERS = [
     "M16_PWR_n5_L16_v1",
 ]
 
-# Nome step preferito
+# Preferred step name
 PREFERRED_STEP = "Step-1"
 
-# ============================================================
-# FUNZIONI BASE
-# ============================================================
+# =========================================
+# BASIC FUNCTIONS
+# =========================================
 
 def safe_makedirs(path):
     if not os.path.isdir(path):
@@ -73,14 +84,14 @@ def mean(values):
 
 def find_project_root():
     """
-    In Abaqus noGUI __file__ spesso non esiste.
-    Quindi usiamo la cartella da cui lanci il comando.
+    In Abaqus noGUI mode, __file__ often does not exist.
+    Therefore, use the folder from which the script is launched.
     """
-    return os.getcwd()
+    return base_folder
 
 def list_model_folders(project_root):
     """
-    Restituisce i nomi delle cartelle modello.
+    Return the list of model folder names.
     """
     model_names = []
 
@@ -90,10 +101,10 @@ def list_model_folders(project_root):
             if os.path.isdir(full):
                 model_names.append(name)
             else:
-                print("ATTENZIONE: cartella non trovata -> %s" % full)
+                print("WARNING: folder not found -> %s" % full)
         return model_names
 
-    # ricerca automatica
+    # automatic search
     items = os.listdir(project_root)
     for item in items:
         full = os.path.join(project_root, item)
@@ -125,7 +136,7 @@ def list_model_folders(project_root):
 
 def find_odb_in_folder(folder_path):
     """
-    Trova l'ODB dentro la cartella modello.
+    Find the ODB file inside the model folder.
     """
     odb_files = []
     for f in os.listdir(folder_path):
@@ -138,7 +149,7 @@ def find_odb_in_folder(folder_path):
     if len(odb_files) == 1:
         return os.path.join(folder_path, odb_files[0])
 
-    # se ce ne sono più di uno, prova a scegliere quello con nome uguale alla cartella
+    # if more than one ODB exists, try choosing the one with the same folder name
     folder_name = os.path.basename(folder_path)
     for f in odb_files:
         if os.path.splitext(f)[0] == folder_name:
@@ -149,7 +160,7 @@ def find_odb_in_folder(folder_path):
 
 def get_last_step_and_frame(odb):
     """
-    Usa Step-1 se presente, altrimenti l'ultimo step disponibile.
+    Use Step-1 if available, otherwise use the last available step.
     """
     if PREFERRED_STEP in odb.steps.keys():
         step = odb.steps[PREFERRED_STEP]
@@ -162,8 +173,8 @@ def get_last_step_and_frame(odb):
 
 def select_main_instance(odb):
     """
-    Se c'è una sola instance usa quella.
-    Se ce ne sono più di una prende quella con più elementi.
+    If there is only one instance, use it.
+    If there are multiple instances, choose the one with the highest number of elements.
     """
     instances = odb.rootAssembly.instances
     inst_names = instances.keys()
@@ -227,8 +238,8 @@ def build_element_centroid_map(instance, node_coords):
 
 def average_stress_per_element(stress_field):
     """
-    Media per elemento dei valori agli integration points.
-    Restituisce:
+    Average the integration-point stress values for each element.
+    Return:
     elem_data[elementLabel] = {'S11': ..., 'Mises': ...}
     """
     tmp = {}
@@ -258,9 +269,9 @@ def average_stress_per_element(stress_field):
 
     return elem_data
 
-# ============================================================
-# FUNZIONE PRINCIPALE DI ESTRAZIONE
-# ============================================================
+# =========================================
+# MAIN EXTRACTION FUNCTION
+# =========================================
 
 def extract_summary_and_line(odb_path, output_line_csv):
     odb = openOdb(path=odb_path, readOnly=True)
@@ -271,7 +282,7 @@ def extract_summary_and_line(odb_path, output_line_csv):
         print("  Frame ID  : %s" % str(frame.incrementNumber))
 
         if 'S' not in frame.fieldOutputs.keys():
-            raise RuntimeError("Campo 'S' non trovato nell'ultimo frame.")
+            raise RuntimeError("Field output 'S' not found in the last frame.")
 
         stress_field = frame.fieldOutputs['S']
         instance = select_main_instance(odb)
@@ -297,10 +308,10 @@ def extract_summary_and_line(odb_path, output_line_csv):
             })
 
         if len(rows_all) == 0:
-            raise RuntimeError("Nessun dato stress disponibile dopo ricostruzione.")
+            raise RuntimeError("No stress data available after reconstruction.")
 
         # -------------------------
-        # SUMMARY GLOBALE
+        # GLOBAL SUMMARY
         # -------------------------
         row_max_mises = rows_all[0]
         row_max_s11 = rows_all[0]
@@ -327,7 +338,7 @@ def extract_summary_and_line(odb_path, output_line_csv):
         }
 
         # -------------------------
-        # PROFILO SULLA MEZZERIA
+        # CENTERLINE PROFILE
         # -------------------------
         line_rows = []
 
@@ -337,8 +348,8 @@ def extract_summary_and_line(odb_path, output_line_csv):
 
         if len(line_rows) == 0:
             raise RuntimeError(
-                "Nessun elemento trovato vicino a y=%.3f con tolleranza %.3f. "
-                "Aumenta Y_TOL." % (Y_TARGET, Y_TOL)
+                "No elements found near y=%.3f with tolerance %.3f. "
+                "Increase Y_TOL." % (Y_TARGET, Y_TOL)
             )
 
         line_rows.sort(key=lambda rr: rr['x'])
@@ -362,9 +373,9 @@ def extract_summary_and_line(odb_path, output_line_csv):
     finally:
         odb.close()
 
-# ============================================================
+# =========================================
 # MAIN
-# ============================================================
+# =========================================
 
 def main():
     project_root = find_project_root()
@@ -372,7 +383,7 @@ def main():
     print("\n=== DEBUG PATH ===")
     print("Working directory: %s" % project_root)
 
-    print("\nContenuto cartella:")
+    print("\nFolder contents:")
     for item in os.listdir(project_root):
         print(" - %s" % item)
 
@@ -386,12 +397,12 @@ def main():
 
     model_folders = list_model_folders(project_root)
 
-    print("\nModelli trovati:")
+    print("\nDetected models:")
     for m in model_folders:
         print(" - %s" % m)
 
     if len(model_folders) == 0:
-        print("\nNessuna cartella modello trovata. Fine.")
+        print("\nNo model folders found. End.")
         return
 
     summary_rows = []
@@ -403,7 +414,7 @@ def main():
         odb_path = find_odb_in_folder(folder_path)
 
         if odb_path is None:
-            print("  Nessun ODB trovato nella cartella.")
+            print("  No ODB found in the folder.")
             continue
 
         print("  ODB found  : %s" % os.path.basename(odb_path))
@@ -433,7 +444,7 @@ def main():
             ])
 
         except Exception as e:
-            print("  ERRORE su %s" % model_name)
+            print("  ERROR on %s" % model_name)
             print("  %s" % str(e))
             traceback.print_exc()
 
@@ -453,10 +464,10 @@ def main():
 
     fsum.close()
 
-    print("\nFINE.")
-    print("Summary salvato in:")
+    print("\nDONE.")
+    print("Summary saved to:")
     print("  %s" % summary_csv)
-    print("Profili salvati in:")
+    print("Line profiles saved to:")
     print("  %s" % line_dir)
 
 if __name__ == "__main__":
