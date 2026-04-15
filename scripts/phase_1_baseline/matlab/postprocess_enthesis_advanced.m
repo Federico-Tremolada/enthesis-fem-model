@@ -1,60 +1,53 @@
 %% ===========================================================
-% ADVANCED POST-PROCESSING — ENTHESIS MECHANICAL ANALYSIS
-% ============================================================
+% Script: postprocess_enthesis_advanced.m
+% Author: FEDERICO TREMOLADA
 %
-% Description:
-% This script extends the analysis of the S11(x) stress field
-% by introducing advanced mechanical metrics for evaluating
-% different enthesis models.
+% Purpose:
+% Extend the post-processing analysis of the S11(x) stress field by
+% introducing advanced mechanical metrics for evaluating different
+% enthesis models.
 %
-% In addition to direct comparison, it analyzes:
-% - First derivative → stress gradient
-% - Second derivative → stress curvature (concentration)
-% - Area difference with respect to the sharp model
-% - Smoothness of the stress field
-%
-% Engineering objective:
-% Quantify the ability of graded models to:
-% - reduce stress peaks
-% - distribute stresses more smoothly
-% - improve mechanical transition at the interface
+% Models:
+% - M01_sharp_v1
+% - M02_linear_v1
+% - M03_exponential_v1
+% - M04_power_n05_v1
+% - M05_power_n2_v1
+% - Any additional model structured in the same way
 %
 % Input:
 % - CSV files containing:
-%     x   → coordinate along the interface [mm]
-%     S11 → longitudinal stress [MPa]
+%     x   -> coordinate along the interface [mm]
+%     S11 -> longitudinal stress [MPa]
+%
+% Operations:
+% - Read CSV files containing S11(x) stress profiles
+% - Interpolate data onto a common spatial grid
+% - Compare different models directly
+% - Compute first derivative -> stress gradient
+% - Compute second derivative -> stress curvature
+% - Compute area difference with respect to the sharp model
+% - Compute smoothness-related mechanical metrics
+% - Generate comparative plots and ranking tables
 %
 % Output:
 % - Plots:
-%     • comparative S11(x)
-%     • stress gradient (dS/dx)
-%     • stress curvature (d²S/dx²)
-%     • bar plots of key metrics
-%
+%     * comparative S11(x)
+%     * stress gradient (dS/dx)
+%     * stress curvature (d^2S/dx^2)
+%     * bar plots of key metrics
 % - Tables:
-%     • summary_metrics_advanced.csv
-%     • model_ranking.csv
+%     * summary_metrics_advanced.csv
+%     * model_ranking.csv
 %
-% Key metrics:
-% - S11 at the interface
-% - max |dS/dx| → gradient severity
-% - mean |d²S/dx²| → local stress concentration
-% - area vs sharp → global difference
-%
-% Ranking:
-% Models are ranked based on:
-% - interface performance
-% - smoothness (gradient and curvature)
-%
-% Physical meaning:
-% A good enthesis model should:
-% - minimize mechanical discontinuities
-% - reduce stress concentrations
-% - ensure gradual load transfer
-%
-% Author: FEDERICO TREMOLADA
-% Project: Entesis FEM Study
-% ============================================================
+% Notes:
+% - A good enthesis model should:
+%     * minimize mechanical discontinuities
+%     * reduce stress concentrations
+%     * ensure gradual load transfer
+% - Update file names according to your own project structure
+% - This script uses folder selection through a dialog window
+%% ===========================================================
 
 clear; close all; clc;
 
@@ -62,10 +55,10 @@ clear; close all; clc;
 % 1. CSV FOLDER SELECTION
 %% =========================
 
-folder = uigetdir(pwd, 'Seleziona la cartella contenente i file CSV');
+folder = uigetdir(pwd, 'Select the folder containing the CSV files');
 
 if isequal(folder, 0)
-    error('Nessuna cartella selezionata. Script interrotto.');
+    error('No folder selected. Script interrupted.');
 end
 
 %% =========================
@@ -101,7 +94,7 @@ for i = 1:n_models
     file_path = fullfile(folder, files{i});
     
     if ~isfile(file_path)
-        error('File non trovato: %s', file_path);
+        error('File not found: %s', file_path);
     end
     
     T = readtable(file_path);
@@ -112,11 +105,11 @@ for i = 1:n_models
     idx_s11 = find(strcmp(vars_lower, 's11'), 1);
     
     if isempty(idx_x)
-        error('Nel file %s non trovo una colonna chiamata x/X.', files{i});
+        error('In file %s, no column named x/X was found.', files{i});
     end
     
     if isempty(idx_s11)
-        error('Nel file %s non trovo una colonna chiamata S11/s11.', files{i});
+        error('In file %s, no column named S11/s11 was found.', files{i});
     end
     
     x = T.(vars{idx_x});
@@ -126,7 +119,7 @@ for i = 1:n_models
     S11 = S11(:);
     
     if ~isnumeric(x) || ~isnumeric(S11)
-        error('Le colonne x e S11 nel file %s devono essere numeriche.', files{i});
+        error('Columns x and S11 in file %s must be numeric.', files{i});
     end
     
     valid = ~(isnan(x) | isnan(S11));
@@ -134,7 +127,7 @@ for i = 1:n_models
     S11 = S11(valid);
     
     if isempty(x)
-        error('Il file %s non contiene dati validi.', files{i});
+        error('File %s does not contain valid data.', files{i});
     end
     
     [x, idx_sort] = sort(x);
@@ -155,7 +148,7 @@ x_min = max(cellfun(@(d) min(d.x), data));
 x_max = min(cellfun(@(d) max(d.x), data));
 
 if x_min >= x_max
-    error('Intervallo comune in x non valido. Controlla i CSV.');
+    error('Invalid common x range. Check the CSV files.');
 end
 
 n_points = 500;
@@ -172,7 +165,7 @@ end
 % 5. MAIN PLOT
 %% =========================
 
-fig1 = figure('Name','Confronto S11 vs x','Color','w');
+fig1 = figure('Name','S11 comparison vs x','Color','w');
 hold on; grid on; box on;
 
 colors = lines(n_models);
@@ -184,13 +177,13 @@ for i = 1:n_models
 end
 
 x_interface = 15;
-xline(x_interface, '--k', 'Interfaccia', ...
+xline(x_interface, '--k', 'Interface', ...
     'LineWidth', 1.5, ...
     'LabelVerticalAlignment', 'middle');
 
 xlabel('x [mm]');
 ylabel('S11 [MPa]');
-title('Confronto dei modelli: S11 lungo la linea');
+title('Model comparison: S11 along the line');
 legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
@@ -200,24 +193,24 @@ set(gca, 'FontSize', 12);
 
 metrics = struct();
 
-S_sharp = S11_interp(:,1); % riferimento
+S_sharp = S11_interp(:,1); % reference
 
 for i = 1:n_models
     
     S = S11_interp(:,i);
     
-    % Derivata prima e seconda
+    % First and second derivatives
     dSdx = gradient(S, x_common);
     d2Sdx2 = gradient(dSdx, x_common);
     
-    % Massimi/minimi
+    % Maximum and minimum values
     [Smax, idx_max] = max(S);
     [Smin, idx_min] = min(S);
     
     x_max_pos = x_common(idx_max);
     x_min_pos = x_common(idx_min);
     
-    % Valore all'interfaccia
+    % Value at the interface
     S_interface = interp1(x_common, S, x_interface, 'linear');
     
     % Range
@@ -229,10 +222,10 @@ for i = 1:n_models
     mean_abs_curvature = mean(abs(d2Sdx2));
     max_abs_curvature = max(abs(d2Sdx2));
     
-    % Area differenza rispetto a Sharp
+    % Area difference with respect to Sharp
     area_vs_sharp = trapz(x_common, abs(S - S_sharp));
     
-    % Area assoluta della curva
+    % Absolute area under the curve
     area_abs_S11 = trapz(x_common, abs(S));
     
     metrics(i).name = model_names{i};
@@ -251,7 +244,7 @@ for i = 1:n_models
 end
 
 %% =========================
-% 7. COMPLETE CHART
+% 7. COMPLETE TABLE
 %% =========================
 
 ResultsTable = table( ...
@@ -285,37 +278,37 @@ ResultsTable = table( ...
 
 disp(' ');
 disp('==============================');
-disp('     TABELLA COMPLETA');
+disp('     COMPLETE TABLE');
 disp('==============================');
 disp(ResultsTable);
 
 %% =========================
-% 8. STAMPA INTERPRETATIVA
+% 8. INTERPRETATIVE PRINTING
 %% =========================
 
 fprintf('\n==============================\n');
-fprintf('   INTERPRETAZIONE NUMERICA\n');
+fprintf('   NUMERICAL INTERPRETATION\n');
 fprintf('==============================\n');
 
 [~, idx_best_grad] = min([metrics.max_abs_gradient]);
 [~, idx_best_curv] = min([metrics.mean_abs_curvature]);
 [~, idx_best_interface] = max([metrics.S_interface]); 
-% max perché sono valori negativi: meno negativo = migliore
+% max because the values are negative: less negative = better
 
-fprintf('\nModello con gradiente massimo minore: %s\n', metrics(idx_best_grad).name);
+fprintf('\nModel with lowest maximum gradient: %s\n', metrics(idx_best_grad).name);
 fprintf('  max|dS/dx| = %.4f\n', metrics(idx_best_grad).max_abs_gradient);
 
-fprintf('\nModello con curvatura media minore: %s\n', metrics(idx_best_curv).name);
+fprintf('\nModel with lowest mean curvature: %s\n', metrics(idx_best_curv).name);
 fprintf('  mean|d2S/dx2| = %.4f\n', metrics(idx_best_curv).mean_abs_curvature);
 
-fprintf('\nModello con S11 all''interfaccia meno severo: %s\n', metrics(idx_best_interface).name);
+fprintf('\nModel with least severe S11 at the interface: %s\n', metrics(idx_best_interface).name);
 fprintf('  S11_interface = %.4f MPa\n', metrics(idx_best_interface).S_interface);
 
 %% =========================
 % 9. FIRST DERIVATIVE PLOT
 %% =========================
 
-fig2 = figure('Name','Gradiente di stress','Color','w');
+fig2 = figure('Name','Stress gradient','Color','w');
 hold on; grid on; box on;
 
 for i = 1:n_models
@@ -323,10 +316,10 @@ for i = 1:n_models
     plot(x_common, dSdx, 'LineWidth', 2, 'Color', colors(i,:));
 end
 
-xline(x_interface, '--k', 'Interfaccia', 'LineWidth', 1.5);
+xline(x_interface, '--k', 'Interface', 'LineWidth', 1.5);
 xlabel('x [mm]');
 ylabel('dS11/dx [MPa/mm]');
-title('Gradiente di stress lungo la linea');
+title('Stress gradient along the line');
 legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
@@ -334,7 +327,7 @@ set(gca, 'FontSize', 12);
 % 10. CURVATURE PLOT
 %% =========================
 
-fig3 = figure('Name','Curvatura di stress','Color','w');
+fig3 = figure('Name','Stress curvature','Color','w');
 hold on; grid on; box on;
 
 for i = 1:n_models
@@ -343,22 +336,22 @@ for i = 1:n_models
     plot(x_common, d2Sdx2, 'LineWidth', 2, 'Color', colors(i,:));
 end
 
-xline(x_interface, '--k', 'Interfaccia', 'LineWidth', 1.5);
+xline(x_interface, '--k', 'Interface', 'LineWidth', 1.5);
 xlabel('x [mm]');
 ylabel('d^2S11/dx^2 [MPa/mm^2]');
-title('Curvatura del campo di stress');
+title('Stress field curvature');
 legend(model_names, 'Location', 'best');
 set(gca, 'FontSize', 12);
 
 %% =========================
-% 11. BARPLOT KEY METRICS 
+% 11. BAR PLOT OF KEY METRICS 
 %% =========================
 
-fig4 = figure('Name','Metriche chiave','Color','w');
+fig4 = figure('Name','Key metrics','Color','w');
 
 subplot(2,2,1);
 bar([metrics.S_interface]');
-title('S11 all''interfaccia');
+title('S11 at the interface');
 ylabel('MPa');
 set(gca, 'XTick', 1:n_models, 'XTickLabel', model_names);
 xtickangle(30); grid on; box on;
@@ -379,7 +372,7 @@ xtickangle(30); grid on; box on;
 
 subplot(2,2,4);
 bar([metrics.area_vs_sharp]');
-title('Area differenza vs Sharp');
+title('Area difference vs Sharp');
 ylabel('MPa·mm');
 set(gca, 'XTick', 1:n_models, 'XTickLabel', model_names);
 xtickangle(30); grid on; box on;
@@ -387,10 +380,10 @@ xtickangle(30); grid on; box on;
 %% =========================
 % 12. FINAL RANKING 
 %% =========================
-% Ranking basato su:
-% - S11_interface (meno severo = meglio)
-% - max_abs_gradient (minore = meglio)
-% - mean_abs_curvature (minore = meglio)
+% Ranking based on:
+% - S11_interface (less severe = better)
+% - max_abs_gradient (smaller = better)
+% - mean_abs_curvature (smaller = better)
 
 S_interface_vals = [metrics.S_interface]';
 grad_vals        = [metrics.max_abs_gradient]';
@@ -398,12 +391,12 @@ curv_vals        = [metrics.mean_abs_curvature]';
 
 model_col = string({metrics.name})';
 
-% normalizzazione 0-1
-% per S11_interface: valori meno negativi sono migliori
+% Normalization 0-1
+% For S11_interface: less negative values are better
 score_interface = (S_interface_vals - min(S_interface_vals)) ./ ...
                   (max(S_interface_vals) - min(S_interface_vals) + eps);
 
-% per gradiente e curvatura: più piccolo = migliore
+% For gradient and curvature: smaller = better
 score_grad = 1 - (grad_vals - min(grad_vals)) ./ ...
                  (max(grad_vals) - min(grad_vals) + eps);
 
@@ -424,7 +417,7 @@ RankingTable = sortrows(RankingTable, 'Final_Score', 'descend');
 
 disp(' ');
 disp('==============================');
-disp('       RANKING FINALE');
+disp('       FINAL RANKING');
 disp('==============================');
 disp(RankingTable);
 
@@ -440,7 +433,7 @@ exportgraphics(fig2, fullfile(folder, 'stress_gradient_comparison.png'), 'Resolu
 exportgraphics(fig3, fullfile(folder, 'stress_curvature_comparison.png'), 'Resolution', 300);
 exportgraphics(fig4, fullfile(folder, 'advanced_metrics_barplot.png'), 'Resolution', 300);
 
-fprintf('\nFile salvati nella cartella selezionata:\n');
+fprintf('\nFiles saved in the selected folder:\n');
 fprintf('  - summary_metrics_advanced.csv\n');
 fprintf('  - model_ranking.csv\n');
 fprintf('  - S11_comparison_advanced.png\n');
