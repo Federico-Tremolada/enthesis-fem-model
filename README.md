@@ -104,8 +104,6 @@ Outputs:
 
 ![Workflow](docs/images/workflow.png)
 
-Abaqus (.odb) → Python (CSV extraction) → MATLAB (analysis, metrics, plots)  
-
 ---
 
 ## Results Overview
