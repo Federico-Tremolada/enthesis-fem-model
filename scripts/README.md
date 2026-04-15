@@ -52,20 +52,6 @@ Extracted data is analyzed to:
 
 ---
 
-## Script Organization
-
-The scripts are organized according to the project phases:
-scripts/
-├── phase_1_baseline/
-│ ├── python/
-│ └── matlab/
-├── phase_2_development/
-│ ├── python/
-│ └── matlab/
-
-
----
-
 ## Python Scripts
 
 Python scripts are responsible for data extraction from Abaqus and part of the analysis.
