@@ -119,7 +119,7 @@ The results highlight clear differences between sharp and graded configurations,
 
 ### Stress Distribution Along the Interface
 
-![S11 comparison](docs/images/S11_comparison.png)
+![S11 comparison](docs/images/S11_comparison_advanced.png)
 
 ### Elastic Energy Distribution
 
