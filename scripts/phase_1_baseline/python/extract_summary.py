@@ -1,46 +1,47 @@
 """
-============================================================
-DATA EXTRACTION — GLOBAL STRESS METRICS
-============================================================
+Script: extract_summary.py
+Author: FEDERICO TREMOLADA
 
-Description:
-This script extracts global stress metrics from Abaqus
-simulation results.
+Purpose:
+Extract global stress metrics from Abaqus output databases to provide a
+quantitative summary of the mechanical response of each FEM model.
 
-It processes .odb files and computes key scalar quantities
-used to characterize the mechanical response of each model.
-
-Specifically, it:
-- opens Abaqus .odb files
-- extracts:
-    • maximum von Mises stress
-    • maximum and minimum S11
-- optionally identifies locations of peak values
-- exports results to CSV format
-
-Engineering objective:
-Provide a quantitative summary of stress levels for each
-model, enabling direct comparison of global mechanical
-behavior.
+Models:
+- Any Abaqus model stored in subfolders inside the selected base directory
+- Models following the same folder-based structure
+- Additional models compatible with the same ODB processing workflow
 
 Input:
-- Abaqus .odb files
+- Abaqus .odb files stored inside model subfolders
+
+Operations:
+- Search model folders inside the selected base directory
+- Find the corresponding .odb file in each folder
+- Open the Abaqus output database
+- Select the most appropriate analysis step
+- Extract from the last frame:
+    • maximum von Mises stress
+    • maximum S11
+    • minimum S11
+- Count available stress values
+- Export results to CSV format
 
 Output:
-- CSV file containing:
+- summary_all_models.csv containing:
     • model name
+    • ODB path
+    • step name
+    • frame ID
+    • frame value
     • max von Mises stress
     • max/min S11
-    • optional coordinates of extrema
+    • number of stress values
+    • status and message
 
 Notes:
-- Used for high-level comparison between models
-- Complements line-based stress analysis
-
-Author: FEDERICO TREMOLADA
-Project: Entesis FEM Study
-Version: v1.0
-============================================================
+This script is intended for high-level comparison of global stress metrics
+between models and complements line-based stress analysis.
+Update the base_folder variable according to your own project structure.
 """
 
 import os
@@ -48,11 +49,24 @@ import csv
 from odbAccess import openOdb
 from abaqusConstants import INTEGRATION_POINT
 
+# =========================================
+# USER SETTINGS
+# =========================================
+
+# Base folder containing model subfolders with .odb files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "models_folder")
+
+output_csv = os.path.join(base_folder, "summary_all_models.csv")
+
+# =========================================
+# FUNCTIONS
+# =========================================
 
 def find_model_folders(root_dir):
     """
     Return subfolders that may contain model ODB files.
-    Ignores hidden folders and common non-model folders.
+    Ignore hidden folders and common non-model folders.
     """
     ignore_names = {
         'python',
@@ -134,7 +148,7 @@ def extract_summary_from_odb(odb_path):
     Open an ODB and extract summary metrics from stress field S
     at the last frame of the selected step.
 
-    Returns a dictionary ready to be written to CSV.
+    Return a dictionary ready to be written to CSV.
     """
     odb = None
 
@@ -219,7 +233,7 @@ def extract_summary_from_odb(odb_path):
     return result
 
 
-def write_csv(output_csv, rows):
+def write_csv(csv_path, rows):
     """
     Write summary results to CSV.
     Compatible with Abaqus Python 3.x.
@@ -238,24 +252,28 @@ def write_csv(output_csv, rows):
         'message'
     ]
 
-    with open(output_csv, 'w', newline='', encoding='utf-8') as f:
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
 
 
+# =========================================
+# MAIN
+# =========================================
+
 def main():
     """
     Main workflow:
-    - use current working directory as project root
+    - use the selected base folder as project root
     - search model folders
-    - find ODB in each folder
+    - find the ODB in each folder
     - extract summary metrics
-    - save CSV
+    - save the CSV file
     """
-    root_dir = os.getcwd()
-    print('Root directory: {}'.format(root_dir))
+    root_dir = base_folder
+    print('Base folder: {}'.format(root_dir))
 
     model_dirs = find_model_folders(root_dir)
 
@@ -304,7 +322,6 @@ def main():
         else:
             print('  ERROR      : {}'.format(result['message']))
 
-    output_csv = os.path.join(root_dir, 'summary_all_models.csv')
     write_csv(output_csv, all_results)
 
     print('\nDone.')
