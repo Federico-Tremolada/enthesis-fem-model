@@ -1,21 +1,64 @@
-clear; clc; close all;
+%% ===========================================================
+% Script: phaseB_power_law_sensitivity_comparison.m
+% Author: FEDERICO TREMOLADA
+%
+% Purpose:
+% Compare Phase B power-law sensitivity results by analyzing global
+% summary metrics and line profiles for different exponent values.
+%
+% Models:
+% - M13_PWR_n1p5_L16_v1
+% - M14_PWR_n2_L16_v1
+% - M15_PWR_n3_L16_v1
+% - M16_PWR_n5_L16_v1
+% - Any additional model structured in the same way
+%
+% Input:
+% - summary_phaseB.csv
+% - Line profile CSV files:
+%     * M13_PWR_n1p5_L16_v1_line.csv
+%     * M14_PWR_n2_L16_v1_line.csv
+%     * M15_PWR_n3_L16_v1_line.csv
+%     * M16_PWR_n5_L16_v1_line.csv
+%
+% Operations:
+% - Read the summary table for Phase B
+% - Sort models in the desired comparison order
+% - Read line-profile CSV files
+% - Average duplicated x positions when needed
+% - Generate comparative S11(x) plots
+% - Generate comparative von Mises(x) plots
+% - Generate global peak comparison plots
+% - Track the shift of peak von Mises position
+% - Build a final decision table
+% - Provide a simple automatic indication of the best candidate model
+%
+% Output:
+% - phaseB_figures/phaseB_S11_profiles.png
+% - phaseB_figures/phaseB_Mises_profiles.png
+% - phaseB_figures/phaseB_global_peaks.png
+% - phaseB_figures/phaseB_peak_position.png
+% - phaseB_figures/phaseB_final_table.csv
+%
+% Notes:
+% - This script is intended for standard MATLAB post-processing
+% - Update the dataFolder variable according to your own project structure
+% - The script assumes that all required CSV files are stored in the
+%   selected working directory or in the specified folder
+%% ===========================================================
 
-%% =========================================================
-%  PHASE B - POWER LAW SENSITIVITY COMPARISON
-%  Legge:
-%  n = 1.5, 2, 3, 5
-%  Input atteso nella cartella corrente oppure specificata
-%% =========================================================
+clear; clc; close all;
 
 %% === USER SETTINGS ===
 
-% Cartella dove stanno i CSV
-dataFolder = pwd;
+% Folder containing the CSV files.
+% Update this path according to your local project structure.
+dataFolder = fullfile(pwd, 'results_folder');
 
-% File summary
+% Summary file
 summaryFile = fullfile(dataFolder, 'summary_phaseB.csv');
 
-% File line profiles
+% Line profile files
 lineFiles = {
     'M13_PWR_n1p5_L16_v1_line.csv'
     'M14_PWR_n2_L16_v1_line.csv'
@@ -23,7 +66,7 @@ lineFiles = {
     'M16_PWR_n5_L16_v1_line.csv'
 };
 
-% Etichette da mostrare nei grafici
+% Labels to display in plots
 modelLabels = {
     'n = 1.5'
     'n = 2'
@@ -31,7 +74,7 @@ modelLabels = {
     'n = 5'
 };
 
-% Cartella output figure
+% Output folder for figures
 outFolder = fullfile(dataFolder, 'phaseB_figures');
 if ~exist(outFolder, 'dir')
     mkdir(outFolder);
@@ -66,7 +109,7 @@ lineTables = cell(numel(lineFiles),1);
 for i = 1:numel(lineFiles)
     T = readtable(fullfile(dataFolder, lineFiles{i}));
     
-    % Se ci sono due righe per ogni x (y=2.85 e y=3.15), facciamo media per x
+    % If there are two rows for each x position, average values by x
     [xUnique, ~, ic] = unique(T.x);
     s11Mean = accumarray(ic, T.S11, [], @mean);
     misesMean = accumarray(ic, T.Mises, [], @mean);
@@ -81,7 +124,7 @@ end
 
 xlabel('x [mm]');
 ylabel('S11 [MPa]');
-title('Phase B - Confronto profili S11(x)');
+title('Phase B - Comparison of S11(x) profiles');
 legend('Location', 'best');
 set(gca, 'FontSize', 11);
 
@@ -99,7 +142,7 @@ end
 
 xlabel('x [mm]');
 ylabel('von Mises [MPa]');
-title('Phase B - Confronto profili von Mises(x)');
+title('Phase B - Comparison of von Mises(x) profiles');
 legend('Location', 'best');
 set(gca, 'FontSize', 11);
 
@@ -144,7 +187,7 @@ set(gca, 'XTick', 1:height(summaryTbl), 'XTickLabel', modelLabels, 'FontSize', 1
 
 xlabel('Model');
 ylabel('x position of max von Mises [mm]');
-title('Spostamento della posizione del picco di von Mises');
+title('Shift of von Mises peak position');
 
 saveas(gcf, fullfile(outFolder, 'phaseB_peak_position.png'));
 
@@ -168,16 +211,16 @@ disp(finalTbl);
 
 [~, idxBestMises] = min(summaryTbl.max_mises);
 [~, idxBestMinS11] = max(summaryTbl.min_s11);  
-% max() perché i valori sono negativi: -6.8 è "meglio" di -8.1
+% max() is used because the values are negative: -6.8 is better than -8.1
 
 fprintf('\n');
-fprintf('Miglior modello per max von Mises: %s\n', modelLabels{idxBestMises});
-fprintf('Miglior modello per min S11: %s\n', modelLabels{idxBestMinS11});
+fprintf('Best model for max von Mises: %s\n', modelLabels{idxBestMises});
+fprintf('Best model for min S11: %s\n', modelLabels{idxBestMinS11});
 
 if idxBestMises == idxBestMinS11
-    fprintf('Candidato automatico forte: %s\n', modelLabels{idxBestMises});
+    fprintf('Strong automatic candidate: %s\n', modelLabels{idxBestMises});
 else
-    fprintf('Serve valutazione finale sui profili S11(x).\n');
+    fprintf('Final evaluation of S11(x) profiles is still required.\n');
 end
 
-fprintf('\nFigure salvate in:\n%s\n', outFolder);
+fprintf('\nFigures saved in:\n%s\n', outFolder);
