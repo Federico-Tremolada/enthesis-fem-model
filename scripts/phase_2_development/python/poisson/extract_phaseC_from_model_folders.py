@@ -35,8 +35,6 @@ and centerline profiles.
 Update the base_folder variable according to your own project structure.
 """
 
-# -*- coding: utf-8 -*-
-
 from odbAccess import openOdb
 from abaqusConstants import *
 import os
