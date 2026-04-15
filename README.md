@@ -202,7 +202,7 @@ To improve the physical realism of the model, a second development phase was imp
 
 ### Elastic Energy Distribution
 
-![Energy distribution](docs/images/SENER_comparison.pn)
+![Energy distribution](docs/images/SENER_comparison.png)
 
 ---
 
