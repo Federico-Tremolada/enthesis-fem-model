@@ -1,5 +1,5 @@
 """
-Script: compare_s11_sener_centerline.py
+Script: final_s11_vs_sener
 Author: FEDERICO TREMOLADA
 
 Purpose:
