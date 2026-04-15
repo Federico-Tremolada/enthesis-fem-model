@@ -11,6 +11,20 @@ This folder contains the results of the elastic energy analysis performed to inv
 
 ---
 
+## Files
+
+* `S11_vs_SENER_M17.png` → combined plot of S11 and SENER along the centerline (M17)
+
+* `S11_vs_SENER_M18.png` → combined plot of S11 and SENER along the centerline (M18)
+
+* `SENER_comparison.png` → comparison of SENER(x) between M17 and M18
+
+* `energy_summary.png` → comparison of total elastic energy (ALLSE)
+
+* `energy_summary.csv` → numerical values of total energy, peaks and gradients
+
+---
+
 ## Methodology
 
 * Extraction of S11 and SENER fields from Abaqus (.odb)
