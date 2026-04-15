@@ -1,5 +1,5 @@
 %% ===========================================================
-% Script: phaseB_power_law_sensitivity_comparison.m
+% Script: compare_phaseB_results.m
 % Author: FEDERICO TREMOLADA
 %
 % Purpose:
