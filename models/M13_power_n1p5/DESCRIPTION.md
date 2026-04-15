@@ -71,3 +71,21 @@ Compared to higher exponents, the n = 1.5 configuration is expected to:
 * increase stiffness more rapidly near the tendon region
 * produce higher stress concentration close to the interface
 * result in a less smooth stress distribution
+
+## Visuals
+
+### Geometry
+
+![Geometry](geometry.png)
+
+### Mesh
+
+![Mesh](mesh.png)
+
+### Boundary Conditions
+
+![Boundary Conditions](boundary_conditions.png)
+
+### Stress Distribution (S11)
+
+![S11](stress_S11.png)
