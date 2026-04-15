@@ -73,3 +73,21 @@ The n = 2 configuration is expected to:
 * provide a balanced stiffness transition
 * reduce stress concentration compared to linear models
 * produce a smoother stress distribution than lower exponents
+
+## Visuals
+
+### Geometry
+
+![Geometry](geometry.png)
+
+### Mesh
+
+![Mesh](mesh.png)
+
+### Boundary Conditions
+
+![Boundary Conditions](boundary_conditions.png)
+
+### Stress Distribution (S11)
+
+![S11](stress_S11.png)
