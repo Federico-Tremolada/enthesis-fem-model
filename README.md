@@ -200,7 +200,7 @@ To improve the physical realism of the model, a second development phase was imp
 - evaluation of energy distribution along the interface  
 - identification of energy concentration zones
 
-### Elastic Energy Distribution
+#### Elastic Energy Distribution
 
 ![Energy distribution](docs/images/SENER_comparison.png)
 
