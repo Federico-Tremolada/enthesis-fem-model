@@ -98,7 +98,13 @@ Outputs:
 - analysis of energy distribution  
 - correlation between stress and energy  
 - computation of quantitative metrics  
-- generation of publication-ready figures  
+- generation of publication-ready figures
+
+## Workflow
+
+![Workflow](docs/images/workflow.png)
+
+Abaqus (.odb) → Python (CSV extraction) → MATLAB (analysis, metrics, plots)  
 
 ---
 
