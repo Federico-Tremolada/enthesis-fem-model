@@ -11,7 +11,6 @@ The objective of this analysis is to evaluate the effect of increasing the numbe
 * `S11_refinement_comparison.png` → comparison of stress profiles for different discretizations
 * `summary_layers.csv` → extracted stress data along the interface
 * `comparison_metrics.csv` → quantitative comparison between models
-* `convergence_report.txt` → automatic convergence evaluation
 
 ---
 
