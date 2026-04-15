@@ -1,82 +1,94 @@
 """
-============================================================
-POST-PROCESSING — S11 COMPARISON ACROSS ALL MODELS
-============================================================
+Script: compare_s11_all_models.py
+Author: FEDERICO TREMOLADA
 
-Description:
-This script performs comparative analysis of S11 stress
-distributions extracted from FEM simulations of the
-tendon–bone interface.
+Purpose:
+Perform comparative analysis of S11 stress distributions across multiple
+FEM models of the tendon-bone interface.
 
-It loads CSV files corresponding to different material
-models and generates unified plots and quantitative metrics.
-
-Specifically, it:
-- reads S11(x) data from multiple models
-- aligns data along a common spatial axis
-- generates comparative plots
-- evaluates stress distribution differences
-
-Engineering objective:
-Assess how different material transition laws influence
-stress transfer and concentration along the interface.
+Models:
+- Sharp
+- Linear
+- Exponential
+- Power n=0.5
+- Power n=2
+- Any additional model structured in the same way
 
 Input:
 - CSV files containing:
-    x   → coordinate along the interface [mm]
-    S11 → longitudinal stress [MPa]
+    x   -> coordinate along the interface [mm]
+    S11 -> longitudinal stress [MPa]
+
+Operations:
+- Load S11(x) data from multiple model CSV files
+- Normalize the spatial coordinate using a reference model length
+- Compute summary metrics for each model
+- Generate a full comparative S11 plot
+- Generate a zoomed comparative plot near the interface region
+- Save the metrics and figures for further analysis
 
 Output:
-- comparative S11 plots
-- processed data for further analysis
-- figures used in the results section
+- summary_metrics_all.csv
+- S11_all_models.png
+- S11_zoom_all_models.png
 
 Notes:
-- All models must share the same geometry and coordinate system
-- Data is assumed to be extracted along the same line
-
-Author: FEDERICO TREMOLADA
-Project: Entesis FEM Study
-Version: v1.0
-============================================================
+This script is intended for comparative post-processing of S11 distributions
+across different material transition laws.
+All models should share the same geometry and coordinate system.
+Update the base_folder variable according to your own project structure.
+Run this script with standard Python, not Abaqus Python.
 """
 
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ======================
-# FILE CSV
-# ======================
+# =========================================
+# USER SETTINGS
+# =========================================
+
+# Base folder containing the CSV input files.
+# Update this path according to your local project structure.
+base_folder = os.path.join(os.getcwd(), "results_folder")
+
 files = {
-    "Sharp": "M01_sharp_v1_line.csv",
-    "Linear": "M02_linear_v1_line.csv",
-    "Exponential": "M03_exponential_v1_line.csv",
-    "Power n=0.5": "M04_power_n05_v1_line.csv",
-    "Power n=2": "M05_power_n2_v1_line.csv",
+    "Sharp": os.path.join(base_folder, "M01_sharp_v1_line.csv"),
+    "Linear": os.path.join(base_folder, "M02_linear_v1_line.csv"),
+    "Exponential": os.path.join(base_folder, "M03_exponential_v1_line.csv"),
+    "Power n=0.5": os.path.join(base_folder, "M04_power_n05_v1_line.csv"),
+    "Power n=2": os.path.join(base_folder, "M05_power_n2_v1_line.csv"),
 }
 
-# ======================
-# LOAD DATI
-# ======================
+summary_metrics_csv = os.path.join(base_folder, "summary_metrics_all.csv")
+plot_all_png = os.path.join(base_folder, "S11_all_models.png")
+plot_zoom_png = os.path.join(base_folder, "S11_zoom_all_models.png")
+
+# =========================================
+# LOAD DATA
+# =========================================
+
 data = {}
 
 for label, filename in files.items():
     df = pd.read_csv(filename)
     data[label] = df
 
-# ======================
-# NORMALIZZAZIONE X
-# uso la lunghezza del primo modello come riferimento
-# ======================
+# =========================================
+# X NORMALIZATION
+# Use the first model length as reference
+# =========================================
+
 reference_label = list(data.keys())[0]
 L = data[reference_label]["x"].max()
 
 for label in data:
     data[label]["x_norm"] = data[label]["x"] / L
 
-# ======================
-# METRICHE
-# ======================
+# =========================================
+# METRICS
+# =========================================
+
 def compute_metrics(df, name):
     max_s11 = df["S11"].max()
     min_s11 = df["S11"].min()
@@ -99,14 +111,15 @@ for label, df in data.items():
     metrics.append(compute_metrics(df, label))
 
 metrics_df = pd.DataFrame(metrics)
-metrics_df.to_csv("summary_metrics_all.csv", index=False)
+metrics_df.to_csv(summary_metrics_csv, index=False)
 
 print("\n=== METRICS ===")
 print(metrics_df)
 
-# ======================
-# STILE GRAFICO
-# ======================
+# =========================================
+# PLOT STYLE
+# =========================================
+
 plt.rcParams.update({
     "figure.facecolor": "white",
     "axes.facecolor": "white",
@@ -126,9 +139,10 @@ styles = {
     "Power n=2": {"marker": "v", "linewidth": 2.7},
 }
 
-# ======================
-# GRAFICO COMPLETO
-# ======================
+# =========================================
+# FULL COMPARISON PLOT
+# =========================================
+
 fig, ax = plt.subplots(figsize=(10, 6.5))
 
 for label, df in data.items():
@@ -147,11 +161,12 @@ ax.grid(True)
 ax.legend(frameon=False, ncol=2)
 
 fig.tight_layout()
-fig.savefig("S11_all_models.png", dpi=300, bbox_inches="tight")
+fig.savefig(plot_all_png, dpi=300, bbox_inches="tight")
 
-# ======================
-# ZOOM INTERFACCIA
-# ======================
+# =========================================
+# INTERFACE ZOOM PLOT
+# =========================================
+
 xmin, xmax = 0.42, 0.60
 
 fig, ax = plt.subplots(figsize=(10, 6.5))
@@ -174,6 +189,6 @@ ax.grid(True)
 ax.legend(frameon=False, ncol=2)
 
 fig.tight_layout()
-fig.savefig("S11_zoom_all_models.png", dpi=300, bbox_inches="tight")
+fig.savefig(plot_zoom_png, dpi=300, bbox_inches="tight")
 
 plt.show()
