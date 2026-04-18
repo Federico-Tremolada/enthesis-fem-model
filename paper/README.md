@@ -1,19 +1,25 @@
 # Paper
 
-This folder contains material related to the scientific paper.
+This folder contains the scientific documentation of the project on functionally graded tendon–bone interfaces.
 
 ## Contents
 
-- Draft versions of the manuscript
-- Figures and plots used in the paper
-- Final PDF (if available)
+* **Overleaf version**
+  Original manuscript developed during the project, containing the complete study structure and analysis.
 
-## Structure
+* **Elsevier version**
+  Reformatted manuscript based on the Elsevier journal template, suitable for academic submission.
 
-The paper follows a standard format:
+## Scope
 
-- Introduction
-- Methods
-- Results
-- Discussion
-- Conclusions
+Both documents present:
+
+* the finite element model of the tendon–bone interface
+* the comparison between sharp and graded material transitions
+* the parametric study on power-law gradients
+* the analysis of stress distribution (S11) and strain energy density (SENER)
+
+## Note
+
+The two versions contain the same technical content, with differences limited to formatting and layout.
+
