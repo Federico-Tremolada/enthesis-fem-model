@@ -13,6 +13,22 @@ This project investigates how different material transition laws influence both 
 
 The main objective is to evaluate whether functionally graded materials (FGMs) can reduce stress concentrations compared to sharp interfaces, and to identify the most mechanically effective transition law.
 
+---
+
+## Key Engineering Insight
+
+This study shows that the **shape of the stiffness gradient directly controls stress transfer mechanisms** at the interface.
+
+A power-law distribution with exponent **n = 3** was identified as the optimal configuration, providing:
+
+- reduced stress concentration  
+- smooth load transfer  
+- distributed elastic energy storage  
+
+This demonstrates that **interface performance can be tuned through material grading**, not only material selection.
+
+---
+
 ## Why This Matters
 
 Understanding stress transfer in graded interfaces is critical for:
@@ -21,12 +37,14 @@ Understanding stress transfer in graded interfaces is critical for:
 - designing biomimetic materials  
 - reducing failure at material interfaces in engineering systems  
 
+---
+
 ## Key Takeaways
 
-- Functionally graded materials reduce stress concentrations
-- Power-law (n = 2) provides optimal stress-energy balance
-- Stress smoothing correlates with distributed elastic energy
-- Results are consistent with FGM theory
+- Functionally graded materials reduce stress concentrations  
+- Power-law (**n = 3**) provides optimal stress-energy balance  
+- Stress smoothing correlates with distributed elastic energy  
+- Results are consistent with FGM theory  
 
 ---
 
@@ -106,7 +124,9 @@ Outputs:
 - analysis of energy distribution  
 - correlation between stress and energy  
 - computation of quantitative metrics  
-- generation of publication-ready figures
+- generation of publication-ready figures  
+
+---
 
 ## Workflow
 
@@ -127,6 +147,8 @@ Key evaluation criteria include:
 
 The results highlight clear differences between sharp and graded configurations, providing a quantitative basis for model selection.
 
+---
+
 ## Visual Results
 
 ### Stress Distribution Along the Interface
@@ -142,15 +164,7 @@ The results highlight clear differences between sharp and graded configurations,
 - The **linear gradient** reduces peak stress but maintains a relatively abrupt transition  
 - The **exponential model** improves stress redistribution  
 - The **power-law model (n = 0.5)** modifies the stress profile but does not significantly reduce peak values  
-- The **power-law model (n = 2)** provides the best balance between peak reduction and smooth load transfer  
-
-### Energy-Based Insight
-
-- Elastic energy distribution confirms stress-based observations  
-- Efficient models show **distributed energy storage**, not localized peaks  
-- The best-performing configurations minimize both:
-  - stress concentration  
-  - energy localization  
+- The **power-law model (n = 2)** improves the transition but does not provide optimal balance  
 
 ---
 
@@ -166,7 +180,7 @@ Graded models significantly improve mechanical behavior:
 - the **exponential model** ensures smoother redistribution  
 - the **power-law (n = 0.5)** does not effectively mitigate peak stress due to rapid stiffening  
 
-The **power-law model with n = 2** provides the most favorable response:
+The **power-law model with n = 3** provides the most favorable response:
 
 - reduced stress concentration  
 - smoother stress transition  
@@ -175,7 +189,7 @@ The **power-law model with n = 2** provides the most favorable response:
 
 ### Selected Model
 
-The **power-law model (n = 2)** is selected as the reference configuration due to its superior performance in:
+The **power-law model (n = 3)** is selected as the reference configuration due to its superior performance in:
 
 - minimizing stress peaks  
 - ensuring gradual load transfer  
@@ -210,7 +224,7 @@ To improve the physical realism of the model, a second development phase was imp
 
 - extraction of elastic strain energy (SENER)  
 - evaluation of energy distribution along the interface  
-- identification of energy concentration zones
+- identification of energy concentration zones  
 
 #### Elastic Energy Distribution
 
@@ -228,10 +242,10 @@ To improve the physical realism of the model, a second development phase was imp
 
 ### Key Outcomes
 
-- variable Poisson’s ratio has a secondary but non-negligible effect  
-- the overall stress distribution remains consistent across models  
+- variable Poisson’s ratio has a negligible effect on the mechanical response  
+- the overall stress distribution remains governed by the stiffness gradient  
 - energy analysis confirms the mechanical advantage of graded interfaces  
-- the **power-law model (n = 2)** remains the most effective configuration  
+- the **power-law model (n = 3)** remains the most effective configuration  
 
 ---
 
@@ -269,18 +283,3 @@ models/    → FEM model descriptions and screenshots
 scripts/   → Python/MATLAB post-processing
 results/   → processed data and plots
 paper/     → manuscript and figures
-```
-
----
-
-## Scope
-
-This project focuses on isolating the effect of material grading on stress transfer and energy distribution, rather than optimizing geometry or modeling full biological complexity.
-
----
-
-## Future Work
-
-- Extension to 3D geometries  
-- Inclusion of nonlinear material behavior  
-- Comparison with experimental data  
