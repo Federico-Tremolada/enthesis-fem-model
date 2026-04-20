@@ -180,7 +180,7 @@ Graded models significantly improve mechanical behavior:
 - the **exponential model** ensures smoother redistribution  
 - the **power-law (n = 0.5)** does not effectively mitigate peak stress due to rapid stiffening  
 
-The **power-law model with n = 3** provides the most favorable response:
+The **power-law model with n = 2** provides the most favorable response:
 
 - reduced stress concentration  
 - smoother stress transition  
@@ -189,7 +189,7 @@ The **power-law model with n = 3** provides the most favorable response:
 
 ### Selected Model
 
-The **power-law model (n = 3)** is selected as the reference configuration due to its superior performance in:
+The **power-law model (n = 2)** is selected as the reference configuration due to its superior performance in:
 
 - minimizing stress peaks  
 - ensuring gradual load transfer  
