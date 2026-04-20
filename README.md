@@ -107,7 +107,7 @@ Outputs:
 - Linear / exponential → partial stress smoothing  
 - Power-law → most effective redistribution  
 
---> Among Phase 1 models, **power-law (n = 2)** provides the best balance between:
+> Among Phase 1 models, **power-law (n = 2)** provides the best balance between:
 
 - peak reduction  
 - distribution symmetry  
@@ -147,7 +147,7 @@ provides the best trade-off between:
 - spatial regularity  
 - physically consistent load transfer  
 
---> This becomes the **reference model** for all subsequent analyses.
+> This becomes the **reference model** for all subsequent analyses.
 
 ---
 
@@ -172,7 +172,7 @@ provides the best trade-off between:
 - slight redistribution of local stress  
 - no improvement in peak reduction  
 
---> The mechanical behavior is dominated by **stiffness gradient E(x)**
+> The mechanical behavior is dominated by **stiffness gradient E(x)**
 
 ---
 
