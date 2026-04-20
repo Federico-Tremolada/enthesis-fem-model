@@ -5,90 +5,49 @@
 ![FEM](https://img.shields.io/badge/Method-Finite%20Element%20Method-green)
 ![Abaqus](https://img.shields.io/badge/Software-Abaqus-lightgrey)
 
+---
+
 ## Overview
 
 The tendon-to-bone interface (enthesis) is a biologically optimized structure characterized by a gradual transition in mechanical properties from compliant tendon to stiff bone.
 
 This project investigates how different material transition laws influence both **stress distribution** and **elastic energy storage** across the interface using Finite Element Modeling (FEM).
 
-The main objective is to evaluate whether functionally graded materials (FGMs) can reduce stress concentrations compared to sharp interfaces, and to identify the most mechanically effective transition law.
-
----
-
-## Key Engineering Insight
-
-This study shows that the **shape of the stiffness gradient directly controls stress transfer mechanisms** at the interface.
-
-A power-law distribution with exponent **n = 3** was identified as the optimal configuration, providing:
-
-- reduced stress concentration  
-- smooth load transfer  
-- distributed elastic energy storage  
-
-This demonstrates that **interface performance can be tuned through material grading**, not only material selection.
-
----
-
-## Why This Matters
-
-Understanding stress transfer in graded interfaces is critical for:
-
-- improving tendon-to-bone surgical repairs  
-- designing biomimetic materials  
-- reducing failure at material interfaces in engineering systems  
-
----
-
-## Key Takeaways
-
-- Functionally graded materials reduce stress concentrations  
-- Power-law (**n = 3**) provides optimal stress-energy balance  
-- Stress smoothing correlates with distributed elastic energy  
-- Results are consistent with FGM theory  
+The goal is to understand how the **shape of the material gradient controls load transfer mechanisms**, and to identify the most mechanically effective configuration.
 
 ---
 
 ## Problem Statement
 
-In engineering systems, abrupt changes in material properties often lead to stress concentrations and structural failure.
+In engineering systems, abrupt changes in material properties generate **stress concentrations** that can lead to structural failure.
 
-Biological systems, in contrast, frequently adopt **graded transitions** to mitigate these effects.
-
-The enthesis represents a paradigmatic example of this strategy.
+Biological interfaces, such as the enthesis, overcome this issue through **functionally graded transitions**, enabling smooth load transfer between dissimilar materials.
 
 This project aims to:
 
 - model the tendon–bone interface using FEM  
 - implement different material gradient laws  
-- analyze stress distribution along the interface  
-- evaluate elastic energy distribution  
+- analyze stress distribution (S11)  
+- evaluate elastic energy distribution (SENER)  
 - identify the most effective transition strategy  
 
 ---
 
 ## Model Description
 
-A simplified 2D FEM model is adopted to isolate the effect of material grading.
+A simplified 2D FEM model is used to isolate the effect of material grading.
 
-- Tendon region → low stiffness  
-- Bone region → high stiffness  
-- Enthesis → graded transition  
+- Tendon → compliant material (E = 200 MPa)  
+- Bone → stiff material (E = 20000 MPa)  
+- Enthesis → graded transition region  
 
-### Implemented Configurations
+All simulations share:
 
-- Sharp interface (baseline)  
-- Linear gradient  
-- Exponential gradient  
-- Power-law gradient (n = 0.5)  
-- Power-law gradient (n = 2)  
+- identical geometry (30 mm × 6 mm)  
+- identical boundary conditions (imposed displacement)  
+- identical mesh strategy  
 
-All models share identical:
-
-- geometry  
-- mesh  
-- boundary conditions  
-
-Only the material law in the enthesis region is varied, ensuring a **controlled mechanical comparison**.
+Only the **material law in the enthesis region** is varied, ensuring a controlled comparison.
 
 ---
 
@@ -98,11 +57,13 @@ The project follows a structured and fully reproducible pipeline:
 
 ### 1. FEM Simulation (Abaqus)
 
-- geometry definition  
+- geometry and partitioning  
 - material assignment  
 - mesh generation  
 - boundary conditions  
-- solution stored as `.odb` files  
+- solution stored as `.odb`  
+
+---
 
 ### 2. Data Extraction (Python)
 
@@ -110,156 +71,180 @@ Extraction of physically meaningful quantities:
 
 - S11 stress component  
 - stress profiles along the interface  
-- elastic strain energy (SENER / ALLSE)  
+- elastic strain energy (SENER)  
 
 Outputs:
 
 - structured CSV datasets  
-- model-wise and combined data  
+- model-wise and combined results  
+
+---
 
 ### 3. Data Analysis (MATLAB / Python)
 
 - interpolation on a common spatial grid  
 - comparison of S11(x) distributions  
-- analysis of energy distribution  
-- correlation between stress and energy  
+- energy distribution analysis  
+- stress–energy correlation  
 - computation of quantitative metrics  
 - generation of publication-ready figures  
 
 ---
 
-## Workflow
+## Phase 1 — Baseline Model Comparison
 
-![Workflow](docs/images/workflow.png)
+### Implemented Configurations
+
+- Sharp interface (discontinuous)  
+- Linear gradient  
+- Exponential gradient  
+- Power-law (n = 0.5)  
+- Power-law (n = 2)  
+
+### Key Findings
+
+- Sharp interface → highest stress concentration  
+- Linear / exponential → partial stress smoothing  
+- Power-law → most effective redistribution  
+
+👉 Among Phase 1 models, **power-law (n = 2)** provides the best balance between:
+
+- peak reduction  
+- distribution symmetry  
+- mechanical consistency  
 
 ---
 
-## Results Overview
+## Transition to Phase 2 — Model Optimization
 
-The comparative analysis focuses on stress and energy distribution along the tendon–bone interface.
+Before introducing additional physical effects, the model was refined through a parametric study:
 
-Key evaluation criteria include:
+### Discretization Refinement
 
-- peak stress magnitude  
-- smoothness of stress distribution  
-- spatial localization of elastic energy  
-- consistency between stress and energy trends  
+- enthesis discretized into increasing number of layers  
+- convergence achieved at **16 layers**  
+- ensures smooth and mesh-independent stress profiles  
 
-The results highlight clear differences between sharp and graded configurations, providing a quantitative basis for model selection.
+### Power-Law Sensitivity
+
+Exponent tested:
+
+- n = 1.5  
+- n = 2  
+- n = 3  
+- n = 5  
+
+### Key Result
+
+The configuration:
+
+- **power-law with n = 3**  
+- **16 layers**
+
+provides the best trade-off between:
+
+- stress peak reduction  
+- spatial regularity  
+- physically consistent load transfer  
+
+👉 This becomes the **reference model** for all subsequent analyses.
+
+---
+
+## Phase 2 — Advanced Model Development
+
+### Objectives
+
+- increase physical realism  
+- validate stress-based results  
+- test robustness of the optimal configuration  
+
+---
+
+### Variable Poisson’s Ratio
+
+- spatial variation of ν across the enthesis  
+- comparison with constant ν model  
+
+### Results
+
+- negligible influence on global response  
+- slight redistribution of local stress  
+- no improvement in peak reduction  
+
+👉 The mechanical behavior is dominated by **stiffness gradient E(x)**
+
+---
+
+### Elastic Energy Analysis
+
+- extraction of SENER  
+- spatial distribution along the interface  
+- comparison between models  
+
+### Key Results
+
+- total elastic energy ≈ identical between models  
+- energy localization matches stress gradients  
+- strong correlation between S11 and SENER  
+
+👉 Confirms that:
+
+- stress redistribution is supported by energy redistribution  
+- graded interfaces improve mechanical compatibility  
+
+---
+
+## Key Engineering Insight
+
+The study demonstrates that:
+
+> **The shape of the stiffness gradient directly controls stress transfer mechanisms**
+
+The optimal configuration:
+
+- **power-law (n = 3, 16 layers)**  
+
+provides:
+
+- reduced stress concentration  
+- smooth load transfer  
+- distributed elastic energy  
+
+---
+
+## Why This Matters
+
+Understanding graded interfaces is critical for:
+
+- tendon-to-bone repair strategies  
+- biomimetic material design  
+- interface engineering in multi-material systems  
 
 ---
 
 ## Visual Results
 
-### Stress Distribution Along the Interface
+### Stress Distribution
 
 ![S11 comparison](docs/images/S11_comparison_advanced.png)
 
 ---
 
-## Key Findings
-
-- The **sharp interface** exhibits the highest stress concentration  
-- Graded models significantly smooth the stress distribution  
-- The **linear gradient** reduces peak stress but maintains a relatively abrupt transition  
-- The **exponential model** improves stress redistribution  
-- The **power-law model (n = 0.5)** modifies the stress profile but does not significantly reduce peak values  
-- The **power-law model (n = 2)** improves the transition but does not provide optimal balance  
-
----
-
-## Conclusions — Model Selection
-
-The comparative analysis highlights the critical role of material transition laws in controlling stress and energy distribution across the tendon–bone interface.
-
-The **sharp interface** confirms the detrimental effect of stiffness discontinuities, producing pronounced stress concentrations and localized energy accumulation.
-
-Graded models significantly improve mechanical behavior:
-
-- the **linear gradient** reduces peak stress but still shows relatively abrupt variation  
-- the **exponential model** ensures smoother redistribution  
-- the **power-law (n = 0.5)** does not effectively mitigate peak stress due to rapid stiffening  
-
-The **power-law model with n = 2** provides the most favorable response:
-
-- reduced stress concentration  
-- smoother stress transition  
-- improved energy distribution  
-- enhanced mechanical compatibility  
-
-### Selected Model
-
-The **power-law model (n = 2)** is selected as the reference configuration due to its superior performance in:
-
-- minimizing stress peaks  
-- ensuring gradual load transfer  
-- distributing elastic energy efficiently  
-- reproducing a physically consistent transition  
-
----
-
-## Advanced Model Development (Phase 2)
-
-To improve the physical realism of the model, a second development phase was implemented.
-
-### Objectives
-
-- introduce additional physical mechanisms  
-- validate stress-based results through energy analysis  
-- assess the robustness of the selected material law  
-
----
-
-### Implemented Enhancements
-
-#### Variable Poisson’s Ratio
-
-- spatial variation of ν within the enthesis region  
-- comparison with constant ν models  
-- evaluation of transverse deformation effects  
-
----
-
-#### Elastic Energy Analysis
-
-- extraction of elastic strain energy (SENER)  
-- evaluation of energy distribution along the interface  
-- identification of energy concentration zones  
-
-#### Elastic Energy Distribution
+### Elastic Energy Distribution
 
 ![Energy distribution](docs/images/SENER_comparison.png)
 
 ---
 
-#### Stress–Energy Correlation
+## Final Conclusions
 
-- comparison between S11 and SENER distributions  
-- assessment of local vs global mechanical response  
-- validation of stress smoothing through energy redistribution  
-
----
-
-### Key Outcomes
-
-- variable Poisson’s ratio has a negligible effect on the mechanical response  
-- the overall stress distribution remains governed by the stiffness gradient  
-- energy analysis confirms the mechanical advantage of graded interfaces  
-- the **power-law model (n = 3)** remains the most effective configuration  
-
----
-
-## Final Remarks
-
-The combined analysis of stress and elastic energy provides a unified and physically consistent interpretation of the tendon–bone interface behavior.
-
-The results demonstrate that:
-
-- graded material transitions significantly improve mechanical performance  
-- stress redistribution is directly supported by energy redistribution  
-- the selected model captures the essential mechanics of the enthesis  
-
-This establishes a solid foundation for future extensions toward more complex and realistic biological models.
+- Sharp interfaces produce non-physiological stress concentrations  
+- Graded materials significantly improve mechanical behavior  
+- The **form of the gradient** is more important than its mere presence  
+- The **power-law model (n = 3)** is the most effective configuration  
+- Poisson’s ratio variation has a secondary role  
+- Elastic energy analysis confirms the physical consistency of the model  
 
 ---
 
@@ -269,7 +254,7 @@ The entire workflow is fully reproducible:
 
 1. run Abaqus simulations  
 2. execute Python extraction scripts  
-3. run MATLAB/Python analysis scripts  
+3. run MATLAB/Python analysis  
 
 All intermediate data is stored in CSV format.
 
@@ -278,8 +263,8 @@ All intermediate data is stored in CSV format.
 ## Repository Structure
 
 ```text
-docs/      → technical documentation
-models/    → FEM model descriptions and screenshots
-scripts/   → Python/MATLAB post-processing
-results/   → processed data and plots
-paper/     → manuscript and figures
+docs/      → technical documentation  
+models/    → FEM model descriptions  
+scripts/   → Python/MATLAB post-processing  
+results/   → processed data and plots  
+paper/     → manuscript and figures  
