@@ -107,7 +107,7 @@ Outputs:
 - Linear / exponential → partial stress smoothing  
 - Power-law → most effective redistribution  
 
-👉 Among Phase 1 models, **power-law (n = 2)** provides the best balance between:
+--> Among Phase 1 models, **power-law (n = 2)** provides the best balance between:
 
 - peak reduction  
 - distribution symmetry  
