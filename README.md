@@ -267,4 +267,19 @@ docs/      → technical documentation
 models/    → FEM model descriptions  
 scripts/   → Python/MATLAB post-processing  
 results/   → processed data and plots  
-paper/     → manuscript and figures  
+paper/     → manuscript and figures
+
+```
+
+---
+
+## Final Remark
+
+This project provides a structured framework to study stress transfer in graded interfaces, bridging biomechanical insight and engineering design.
+
+It establishes a solid foundation for future developments:
+
+- Nonlinear materials
+- Anisotropy
+- 3D modeling
+- Biomimetic implant design
