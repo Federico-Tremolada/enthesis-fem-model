@@ -147,7 +147,7 @@ provides the best trade-off between:
 - spatial regularity  
 - physically consistent load transfer  
 
-👉 This becomes the **reference model** for all subsequent analyses.
+--> This becomes the **reference model** for all subsequent analyses.
 
 ---
 
@@ -172,7 +172,7 @@ provides the best trade-off between:
 - slight redistribution of local stress  
 - no improvement in peak reduction  
 
-👉 The mechanical behavior is dominated by **stiffness gradient E(x)**
+--> The mechanical behavior is dominated by **stiffness gradient E(x)**
 
 ---
 
@@ -188,7 +188,7 @@ provides the best trade-off between:
 - energy localization matches stress gradients  
 - strong correlation between S11 and SENER  
 
-👉 Confirms that:
+Confirms that:
 
 - stress redistribution is supported by energy redistribution  
 - graded interfaces improve mechanical compatibility  
