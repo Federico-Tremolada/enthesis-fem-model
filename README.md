@@ -283,3 +283,10 @@ It establishes a solid foundation for future developments:
 - Anisotropy
 - 3D modeling
 - Biomimetic implant design
+
+---
+
+# Author
+
+**Federico Tremolada**  
+Biomedical Engineer — Politecnico di Milano  
